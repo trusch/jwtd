@@ -1,19 +1,14 @@
 package db
 
-import (
-	"errors"
-
-	"gopkg.in/mgo.v2/bson"
-)
+import "errors"
 
 type Group struct {
-	ID     bson.ObjectId `bson:"_id,omitempty"`
 	Name   string
 	Rights []*AccessRight
 }
 
 type AccessRight struct {
-	Service   string
+	Service string
 	Subject string
 }
 
@@ -22,38 +17,43 @@ func (db *DB) CreateGroup(name string, rights []*AccessRight) error {
 		Name:   name,
 		Rights: rights,
 	}
-	c := db.session.DB("jwtd").C("groups")
-	n, err := c.Find(bson.M{"name": name}).Count()
-	if n != 0 || err != nil {
-		return errors.New("group already exists")
+	for _, g := range db.Config.Groups {
+		if g.Name == name {
+			return errors.New("group already exists")
+		}
 	}
-	return c.Insert(group)
+	db.Config.Groups = append(db.Config.Groups, group)
+	return db.Config.Save(db.ConfigPath)
 }
 
 func (db *DB) GetGroup(name string) (*Group, error) {
-	c := db.session.DB("jwtd").C("groups")
-	group := &Group{}
-	err := c.Find(bson.M{"name": name}).One(group)
-	if err != nil {
-		return nil, err
+	for _, g := range db.Config.Groups {
+		if g.Name == name {
+			return g, nil
+		}
 	}
-	return group, nil
+	return nil, errors.New("group not found")
 }
 
 func (db *DB) DelGroup(name string) error {
-	c := db.session.DB("jwtd").C("groups")
-	return c.Remove(bson.M{"name": name})
+	for idx, g := range db.Config.Groups {
+		if g.Name == name {
+			db.Config.Groups = append(db.Config.Groups[:idx], db.Config.Groups[idx+1:]...)
+			return db.Config.Save(db.ConfigPath)
+		}
+	}
+	return errors.New("group not found")
 }
 
 func (db *DB) UpdateGroup(group *Group) error {
-	c := db.session.DB("jwtd").C("groups")
-	_, err := c.UpsertId(group.ID, group)
-	return err
+	err := db.DelGroup(group.Name)
+	if err != nil {
+		return err
+	}
+	db.Config.Groups = append(db.Config.Groups, group)
+	return db.Config.Save(db.ConfigPath)
 }
 
 func (db *DB) ListGroups() ([]*Group, error) {
-	c := db.session.DB("jwtd").C("groups")
-	var groups []*Group
-	err := c.Find(nil).All(&groups)
-	return groups, err
+	return db.Config.Groups, nil
 }

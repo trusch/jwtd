@@ -5,13 +5,11 @@ import (
 	"log"
 
 	"golang.org/x/crypto/bcrypt"
-	"gopkg.in/mgo.v2/bson"
 )
 
 type User struct {
-	ID           bson.ObjectId `bson:"_id,omitempty"`
 	Name         string
-	PasswordHash []byte `yaml:"-"`
+	PasswordHash string
 	Groups       []string
 }
 
@@ -22,39 +20,44 @@ func (db *DB) CreateUser(name, password string, groups []string) error {
 	}
 	user := &User{
 		Name:         name,
-		PasswordHash: hash,
+		PasswordHash: string(hash),
 		Groups:       groups,
 	}
-	c := db.session.DB("jwtd").C("users")
-	n, err := c.Find(bson.M{"name": name}).Count()
-	if n != 0 || err != nil {
-		return errors.New("user already exists")
+	for _, u := range db.Config.Users {
+		if u.Name == name {
+			return errors.New("user already exists")
+		}
 	}
-	return c.Insert(user)
+	db.Config.Users = append(db.Config.Users, user)
+	return db.Config.Save(db.ConfigPath)
 }
 
 func (db *DB) GetUser(name string) (*User, error) {
-	c := db.session.DB("jwtd").C("users")
-	user := &User{}
-	err := c.Find(bson.M{"name": name}).One(user)
-	if err != nil {
-		return nil, err
+	for _, u := range db.Config.Users {
+		if u.Name == name {
+			return u, nil
+		}
 	}
-	return user, nil
+	return nil, errors.New("user not found")
 }
 
 func (db *DB) DelUser(name string) error {
-	c := db.session.DB("jwtd").C("users")
-	return c.Remove(bson.M{"name": name})
+	for idx, user := range db.Config.Users {
+		if user.Name == name {
+			db.Config.Users = append(db.Config.Users[:idx], db.Config.Users[idx+1:]...)
+			return db.Config.Save(db.ConfigPath)
+		}
+	}
+	return errors.New("group not found")
 }
 
 func (db *DB) UpdateUser(user *User) error {
-	c := db.session.DB("jwtd").C("users")
-	_, err := c.UpsertId(user.ID, user)
+	err := db.DelUser(user.Name)
 	if err != nil {
-		log.Print("update fail")
+		return err
 	}
-	return err
+	db.Config.Users = append(db.Config.Users, user)
+	return db.Config.Save(db.ConfigPath)
 }
 
 func (user *User) CheckRights(db *DB, service string, subject string) (bool, error) {
@@ -74,7 +77,7 @@ func (user *User) CheckRights(db *DB, service string, subject string) (bool, err
 }
 
 func (user *User) CheckPassword(password string) (bool, error) {
-	err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password))
+	err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 	if err != nil {
 		return false, err
 	}
@@ -82,8 +85,5 @@ func (user *User) CheckPassword(password string) (bool, error) {
 }
 
 func (db *DB) ListUsers() ([]*User, error) {
-	c := db.session.DB("jwtd").C("users")
-	var users []*User
-	err := c.Find(nil).All(&users)
-	return users, err
+	return db.Config.Users, nil
 }

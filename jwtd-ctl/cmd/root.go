@@ -31,12 +31,12 @@ func Execute() {
 }
 
 func init() {
-	RootCmd.PersistentFlags().String("db", "localhost", "database URI")
+	RootCmd.PersistentFlags().String("config", "/etc/jwtd/config.yaml", "config file")
 }
 
 func getDB() *db.DB {
-	dbUrl, _ := RootCmd.Flags().GetString("db")
-	db, err := db.New(dbUrl)
+	config, _ := RootCmd.Flags().GetString("config")
+	db, err := db.New(config)
 	if err != nil {
 		log.Fatal(err)
 	}

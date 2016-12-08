@@ -1,7 +1,12 @@
 package main
 
-import "github.com/trusch/jwtd/jwtd-ctl/cmd"
+import (
+	"log"
+
+	"github.com/trusch/jwtd/jwtd-ctl/cmd"
+)
 
 func main() {
+	log.SetFlags(log.Lshortfile)
 	cmd.Execute()
 }

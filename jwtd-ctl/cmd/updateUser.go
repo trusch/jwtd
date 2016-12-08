@@ -35,7 +35,7 @@ var updateUserCmd = &cobra.Command{
 			if e != nil {
 				log.Fatal(e)
 			}
-			user.PasswordHash = hash
+			user.PasswordHash = string(hash)
 		}
 		if len(groups) > 0 {
 			user.Groups = groups

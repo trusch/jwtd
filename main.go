@@ -8,11 +8,11 @@ import (
 
 var certFile = flag.String("cert", "cert.pem", "certfile")
 var keyFile = flag.String("key", "key.pem", "keyfile")
-var dbAddr = flag.String("db", "localhost", "db uri")
+var configFile = flag.String("config", "/etc/jwtd/config.yaml", "config path")
 var listen = flag.String("listen", ":443", "listen address")
 
 func main() {
 	flag.Parse()
-	server.Init(*dbAddr, *keyFile)
+	server.Init(*configFile, *keyFile)
 	server.Serve(*listen, *certFile, *keyFile)
 }

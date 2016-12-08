@@ -1,7 +1,6 @@
 package server
 
 import (
-	"crypto/rsa"
 	"log"
 	"net/http"
 	"time"
@@ -12,11 +11,11 @@ import (
 
 var (
 	database *db.DB
-	key      *rsa.PrivateKey
+	key      interface{}
 )
 
-func Init(databaseUri, keyfile string) error {
-	d, err := db.New(databaseUri)
+func Init(path, keyfile string) error {
+	d, err := db.New(path)
 	if err != nil {
 		return err
 	}
@@ -39,7 +38,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		username string
 		password string
 		service  string
-		subject string
+		subject  string
 	)
 	err := r.ParseForm()
 	if err != nil {
@@ -69,11 +68,11 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	claims := jwt.Claims{
-		"user":     username,
-		"service":  service,
+		"user":    username,
+		"service": service,
 		"subject": subject,
-		"nbf":      time.Now(),
-		"exp":      time.Now().Add(10 * time.Minute),
+		"nbf":     time.Now(),
+		"exp":     time.Now().Add(10 * time.Minute),
 	}
 	token, err := jwt.CreateToken(claims, key)
 	if err != nil {

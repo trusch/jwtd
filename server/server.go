@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/trusch/jwtd/db"
@@ -17,8 +18,31 @@ var (
 func Init(path, keyfile string) error {
 	d, err := db.New(path)
 	if err != nil {
-		return err
+		d = &db.DB{ConfigPath: path, Config: &db.ConfigFile{}}
+		e := d.CreateUser("admin", "admin", []string{"admin"})
+		if e != nil {
+			return e
+		}
+		e = d.CreateGroup("admin", []*db.AccessRight{&db.AccessRight{Service: "jwtd", Subject: "admin"}})
+		if e != nil {
+			return err
+		}
 	}
+	go func() {
+		stat, _ := os.Stat(path)
+		modtime := stat.ModTime()
+		for {
+			stat, _ = os.Stat(path)
+			newModtime := stat.ModTime()
+			if modtime.Unix() != newModtime.Unix() {
+				dNew, err := db.New(path)
+				if err == nil {
+					database = dNew
+				}
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}()
 	database = d
 	k, err := jwt.LoadPrivateKey(keyfile)
 	if err != nil {
@@ -80,5 +104,6 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	log.Printf("successfully created token (user: %v service: %v, subject: %v)", username, service, subject)
 	w.Write([]byte(token))
 }

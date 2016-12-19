@@ -1,0 +1,9 @@
+listen: :8080
+cert: /etc/jwtd-proxy/jwtd.crt
+hosts:
+  localhost:
+    backend: http://whoami:8000
+    routes:
+      - path: /
+        require:
+          scope: admin

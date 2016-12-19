@@ -95,7 +95,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if ok, e := user.CheckRights(database, request.Service, request.Labels); e != nil || !ok {
-		log.Printf("failed request: no rights (user: %v service: %v, subject: %v)", request.Username, request.Service, request.Labels)
+		log.Printf("failed request: no rights (user: %v service: %v, labels: %v)", request.Username, request.Service, request.Labels)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}

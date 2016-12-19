@@ -13,6 +13,7 @@ var configFile = flag.String("config", "/etc/jwtd/config.yaml", "config path")
 var listen = flag.String("listen", ":443", "listen address")
 
 func main() {
+	log.SetFlags(log.Lshortfile)
 	flag.Parse()
 	err := server.Init(*configFile, *keyFile)
 	if err != nil {

@@ -13,6 +13,7 @@ var delRightCmd = &cobra.Command{
 	Long:  `This deletes an accessright from a group. The right is specified by --service and --subject.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
+		project, _ := cmd.Flags().GetString("project")
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
 			if len(args) > 0 {
@@ -22,25 +23,19 @@ var delRightCmd = &cobra.Command{
 			}
 		}
 		service, _ := cmd.Flags().GetString("service")
-		subject, _ := cmd.Flags().GetString("subject")
-		if service == "" || subject == "" {
-			log.Fatal("specifiy --service and --subject")
+		key, _ := cmd.Flags().GetString("key")
+		if service == "" || key == "" {
+			log.Fatal("specifiy --service and --key")
 		}
-		group, err := database.GetGroup(name)
+		group, err := database.GetGroup(project, name)
 		if err != nil {
 			log.Fatal(err)
 		}
-		foundIdx := -1
-		for idx, right := range group.Rights {
-			if right.Service == service && right.Subject == subject {
-				foundIdx = idx
-				break
-			}
+		if _, ok := group.Rights[service][key]; ok {
+			delete(group.Rights[service], key)
+		} else {
+			log.Fatal("no such label key")
 		}
-		if foundIdx == -1 {
-			log.Fatal("no such right")
-		}
-		group.Rights = append(group.Rights[:foundIdx], group.Rights[foundIdx+1:]...)
 		err = database.UpdateGroup(group)
 		if err != nil {
 			log.Fatal(err)
@@ -50,6 +45,6 @@ var delRightCmd = &cobra.Command{
 
 func init() {
 	groupCmd.AddCommand(delRightCmd)
-	delRightCmd.Flags().StringP("subject", "e", "", "affected subject (as regexp)")
 	delRightCmd.Flags().StringP("service", "s", "", "affected service")
+	delRightCmd.Flags().StringP("key", "k", "", "label key")
 }

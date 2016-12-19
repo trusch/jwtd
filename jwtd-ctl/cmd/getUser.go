@@ -16,6 +16,7 @@ var getUserCmd = &cobra.Command{
 	Long:  `This prints the database content for a given user.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
+		project, _ := cmd.Flags().GetString("project")
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
 			if len(args) > 0 {
@@ -24,7 +25,7 @@ var getUserCmd = &cobra.Command{
 				log.Fatal("specify --name")
 			}
 		}
-		user, err := database.GetUser(name)
+		user, err := database.GetUser(project, name)
 		if err != nil {
 			log.Fatal(err)
 		}

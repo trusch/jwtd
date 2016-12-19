@@ -31,7 +31,8 @@ func Execute() {
 }
 
 func init() {
-	RootCmd.PersistentFlags().String("config", "/etc/jwtd/config.yaml", "config file")
+	RootCmd.PersistentFlags().StringP("config", "c", "/etc/jwtd/config.yaml", "config file")
+	RootCmd.PersistentFlags().StringP("project", "p", "default", "project to use")
 }
 
 func getDB() *db.DB {

@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/trusch/jwtd/db"
 )
 
 // addRightCmd represents the addRight command
@@ -14,6 +13,7 @@ var addRightCmd = &cobra.Command{
 	Long:  `This adds an access right to a group.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
+		project, _ := cmd.Flags().GetString("project")
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
 			if len(args) > 0 {
@@ -23,15 +23,20 @@ var addRightCmd = &cobra.Command{
 			}
 		}
 		service, _ := cmd.Flags().GetString("service")
-		subject, _ := cmd.Flags().GetString("subject")
-		if service == "" || subject == "" {
-			log.Fatal("specifiy --service and --subject")
+		key, _ := cmd.Flags().GetString("key")
+		value, _ := cmd.Flags().GetString("value")
+		if service == "" || key == "" || value == "" {
+			log.Fatal("specifiy --service, --key and --value")
 		}
-		group, err := database.GetGroup(name)
+		group, err := database.GetGroup(project, name)
 		if err != nil {
 			log.Fatal(err)
 		}
-		group.Rights = append(group.Rights, &db.AccessRight{Service: service, Subject: subject})
+		if labels, ok := group.Rights[service]; ok {
+			labels[key] = value
+		} else {
+			group.Rights[service] = map[string]string{key: value}
+		}
 		err = database.UpdateGroup(group)
 		if err != nil {
 			log.Fatal(err)
@@ -42,5 +47,6 @@ var addRightCmd = &cobra.Command{
 func init() {
 	groupCmd.AddCommand(addRightCmd)
 	addRightCmd.Flags().StringP("service", "s", "", "affected service")
-	addRightCmd.Flags().StringP("subject", "e", "", "affected subject (as regexp)")
+	addRightCmd.Flags().StringP("key", "k", "", "label key")
+	addRightCmd.Flags().StringP("value", "v", "", "label value")
 }

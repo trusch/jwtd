@@ -3,22 +3,19 @@ package db
 import "errors"
 
 type Group struct {
-	Name   string
-	Rights []*AccessRight
+	Name    string
+	Project string
+	Rights  map[string]map[string]string
 }
 
-type AccessRight struct {
-	Service string
-	Subject string
-}
-
-func (db *DB) CreateGroup(name string, rights []*AccessRight) error {
+func (db *DB) CreateGroup(project, name string, rights map[string]map[string]string) error {
 	group := &Group{
-		Name:   name,
-		Rights: rights,
+		Name:    name,
+		Project: project,
+		Rights:  rights,
 	}
 	for _, g := range db.Config.Groups {
-		if g.Name == name {
+		if g.Name == name && g.Project == project {
 			return errors.New("group already exists")
 		}
 	}
@@ -26,18 +23,18 @@ func (db *DB) CreateGroup(name string, rights []*AccessRight) error {
 	return db.Config.Save(db.ConfigPath)
 }
 
-func (db *DB) GetGroup(name string) (*Group, error) {
+func (db *DB) GetGroup(project, name string) (*Group, error) {
 	for _, g := range db.Config.Groups {
-		if g.Name == name {
+		if g.Project == project && g.Name == name {
 			return g, nil
 		}
 	}
 	return nil, errors.New("group not found")
 }
 
-func (db *DB) DelGroup(name string) error {
+func (db *DB) DelGroup(project, name string) error {
 	for idx, g := range db.Config.Groups {
-		if g.Name == name {
+		if g.Project == project && g.Name == name {
 			db.Config.Groups = append(db.Config.Groups[:idx], db.Config.Groups[idx+1:]...)
 			return db.Config.Save(db.ConfigPath)
 		}
@@ -46,7 +43,7 @@ func (db *DB) DelGroup(name string) error {
 }
 
 func (db *DB) UpdateGroup(group *Group) error {
-	err := db.DelGroup(group.Name)
+	err := db.DelGroup(group.Project, group.Name)
 	if err != nil {
 		return err
 	}
@@ -54,6 +51,12 @@ func (db *DB) UpdateGroup(group *Group) error {
 	return db.Config.Save(db.ConfigPath)
 }
 
-func (db *DB) ListGroups() ([]*Group, error) {
-	return db.Config.Groups, nil
+func (db *DB) ListGroups(project string) ([]*Group, error) {
+	groups := []*Group{}
+	for _, g := range db.Config.Groups {
+		if g.Project == project {
+			groups = append(groups, g)
+		}
+	}
+	return groups, nil
 }

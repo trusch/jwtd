@@ -15,6 +15,7 @@ var updateUserCmd = &cobra.Command{
 	Long:  `This updates a user in your database.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
+		project, _ := cmd.Flags().GetString("project")
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
 			if len(args) > 0 {
@@ -26,7 +27,7 @@ var updateUserCmd = &cobra.Command{
 		password, _ := cmd.Flags().GetString("password")
 		groups, _ := cmd.Flags().GetStringSlice("groups")
 
-		user, err := database.GetUser(name)
+		user, err := database.GetUser(project, name)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -49,6 +50,6 @@ var updateUserCmd = &cobra.Command{
 
 func init() {
 	userCmd.AddCommand(updateUserCmd)
-	updateUserCmd.Flags().StringP("password", "p", "", "user password")
+	updateUserCmd.Flags().String("password", "", "user password")
 	updateUserCmd.Flags().StringSliceP("groups", "g", []string{"default"}, "comma separated list of groups")
 }

@@ -33,13 +33,16 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		configPath, _ := cmd.Flags().GetString("config")
+		project, _ := cmd.Flags().GetString("project")
 		database := &db.DB{ConfigPath: configPath, Config: &db.ConfigFile{}}
-		err := database.CreateUser("admin", "admin", []string{"admin"})
+		err := database.CreateUser(project, "admin", "admin", []string{"admin"})
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = database.CreateGroup("admin", []*db.AccessRight{
-			&db.AccessRight{Service: "jwtd", Subject: "admin"},
+		err = database.CreateGroup("default", "admin", map[string]map[string]string{
+			"jwtd": map[string]string{
+				"scope": "admin",
+			},
 		})
 		if err != nil {
 			log.Fatal(err)

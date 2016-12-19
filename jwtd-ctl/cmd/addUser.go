@@ -13,6 +13,7 @@ var addUserCmd = &cobra.Command{
 	Long:  `This adds a new user to your jwtd server`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
+		project, _ := cmd.Flags().GetString("project")
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
 			if len(args) > 0 {
@@ -23,7 +24,7 @@ var addUserCmd = &cobra.Command{
 		}
 		password, _ := cmd.Flags().GetString("password")
 		groups, _ := cmd.Flags().GetStringSlice("groups")
-		err := database.CreateUser(name, password, groups)
+		err := database.CreateUser(project, name, password, groups)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -32,6 +33,6 @@ var addUserCmd = &cobra.Command{
 
 func init() {
 	userCmd.AddCommand(addUserCmd)
-	addUserCmd.Flags().StringP("password", "p", "", "user password")
+	addUserCmd.Flags().String("password", "", "user password")
 	addUserCmd.Flags().StringSliceP("groups", "g", []string{"default"}, "comma separated list of groups")
 }

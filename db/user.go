@@ -10,21 +10,23 @@ import (
 type User struct {
 	Name         string
 	PasswordHash string
+	Project      string
 	Groups       []string
 }
 
-func (db *DB) CreateUser(name, password string, groups []string) error {
+func (db *DB) CreateUser(project, name, password string, groups []string) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 	user := &User{
 		Name:         name,
+		Project:      project,
 		PasswordHash: string(hash),
 		Groups:       groups,
 	}
 	for _, u := range db.Config.Users {
-		if u.Name == name {
+		if u.Name == name && u.Project == project {
 			return errors.New("user already exists")
 		}
 	}
@@ -32,27 +34,27 @@ func (db *DB) CreateUser(name, password string, groups []string) error {
 	return db.Config.Save(db.ConfigPath)
 }
 
-func (db *DB) GetUser(name string) (*User, error) {
+func (db *DB) GetUser(project, name string) (*User, error) {
 	for _, u := range db.Config.Users {
-		if u.Name == name {
+		if u.Project == project && u.Name == name {
 			return u, nil
 		}
 	}
 	return nil, errors.New("user not found")
 }
 
-func (db *DB) DelUser(name string) error {
+func (db *DB) DelUser(project, name string) error {
 	for idx, user := range db.Config.Users {
-		if user.Name == name {
+		if user.Project == project && user.Name == name {
 			db.Config.Users = append(db.Config.Users[:idx], db.Config.Users[idx+1:]...)
 			return db.Config.Save(db.ConfigPath)
 		}
 	}
-	return errors.New("group not found")
+	return errors.New("user not found")
 }
 
 func (db *DB) UpdateUser(user *User) error {
-	err := db.DelUser(user.Name)
+	err := db.DelUser(user.Project, user.Name)
 	if err != nil {
 		return err
 	}
@@ -60,18 +62,24 @@ func (db *DB) UpdateUser(user *User) error {
 	return db.Config.Save(db.ConfigPath)
 }
 
-func (user *User) CheckRights(db *DB, service string, subject string) (bool, error) {
+func (user *User) CheckRights(db *DB, service string, labels map[string]string) (bool, error) {
+	toAck := len(labels)
 	for _, groupName := range user.Groups {
-		group, err := db.GetGroup(groupName)
+		group, err := db.GetGroup(user.Project, groupName)
 		if err != nil {
 			log.Printf("Error loading group %v: %v", groupName, err)
 			continue
 		}
-		for _, right := range group.Rights {
-			if right.Service == service && right.Subject == subject {
-				return true, nil
+		for key, value := range group.Rights[service] {
+			for k, v := range labels {
+				if key == k && value == v {
+					toAck -= 1
+				}
 			}
 		}
+	}
+	if toAck == 0 {
+		return true, nil
 	}
 	return false, nil
 }
@@ -84,6 +92,12 @@ func (user *User) CheckPassword(password string) (bool, error) {
 	return true, nil
 }
 
-func (db *DB) ListUsers() ([]*User, error) {
-	return db.Config.Users, nil
+func (db *DB) ListUsers(project string) ([]*User, error) {
+	users := []*User{}
+	for _, u := range db.Config.Users {
+		if u.Project == project {
+			users = append(users, u)
+		}
+	}
+	return users, nil
 }

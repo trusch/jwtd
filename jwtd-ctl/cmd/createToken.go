@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -16,40 +17,42 @@ var createTokenCmd = &cobra.Command{
 	Long:  `This creates a token.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
+		project, _ := cmd.Flags().GetString("project")
 		keyFile, _ := cmd.Flags().GetString("key")
 		username, _ := cmd.Flags().GetString("username")
 		password, _ := cmd.Flags().GetString("password")
 		service, _ := cmd.Flags().GetString("service")
-		subject, _ := cmd.Flags().GetString("subject")
+		labels := parseLabels(cmd)
 		force, _ := cmd.Flags().GetBool("force")
 
 		if force {
-			if keyFile == "" || username == "" || service == "" || subject == "" {
-				log.Fatal("specify --key --username --service and --subject")
+			if keyFile == "" || username == "" || service == "" || len(labels) == 0 {
+				log.Fatal("specify --key --username --service and --labels")
 			}
 		} else {
-			if keyFile == "" || username == "" || password == "" || service == "" || subject == "" {
-				log.Fatal("specify --key --username --password --service and --subject")
+			if keyFile == "" || username == "" || password == "" || service == "" || len(labels) == 0 {
+				log.Fatal("specify --key --username --password --service and --labels")
 			}
 		}
 
 		if !force {
-			user, err := database.GetUser(username)
+			user, err := database.GetUser(project, username)
 			if err != nil {
 				log.Fatalf("failed request: no such user (%v)", username)
 			}
 			if ok, e := user.CheckPassword(password); e != nil || !ok {
 				log.Fatalf("failed request: wrong password (user: %v)", username)
 			}
-			if ok, e := user.CheckRights(database, service, subject); e != nil || !ok {
-				log.Fatalf("failed request: no rights (user: %v service: %v, subject: %v)", username, service, subject)
+			if ok, e := user.CheckRights(database, service, labels); e != nil || !ok {
+				log.Fatalf("failed request: no rights (user: %v service: %v, labels: %v)", username, service, labels)
 			}
 		}
 
 		claims := jwt.Claims{
 			"user":    username,
 			"service": service,
-			"subject": subject,
+			"project": project,
+			"labels":  labels,
 			"nbf":     time.Now(),
 			"exp":     time.Now().Add(10 * time.Minute),
 		}
@@ -65,12 +68,24 @@ var createTokenCmd = &cobra.Command{
 	},
 }
 
+func parseLabels(cmd *cobra.Command) map[string]string {
+	labelsSlice, _ := cmd.Flags().GetStringSlice("labels")
+	labels := make(map[string]string)
+	for _, labelStr := range labelsSlice {
+		parts := strings.Split(labelStr, "=")
+		if len(parts) == 2 {
+			labels[parts[0]] = parts[1]
+		}
+	}
+	return labels
+}
+
 func init() {
 	tokenCmd.AddCommand(createTokenCmd)
 	createTokenCmd.Flags().StringP("key", "k", "", "private rsa key to sign the token")
 	createTokenCmd.Flags().StringP("username", "u", "", "username to use")
-	createTokenCmd.Flags().StringP("password", "p", "", "password to use")
+	createTokenCmd.Flags().String("password", "", "password to use")
 	createTokenCmd.Flags().BoolP("force", "f", false, "force token creation (no auth checks)")
 	createTokenCmd.Flags().String("service", "", "service to use")
-	createTokenCmd.Flags().String("subject", "", "subject to use")
+	createTokenCmd.Flags().StringSlice("labels", []string{}, "comma separated list of labels (foo=abc,bar=baz)")
 }

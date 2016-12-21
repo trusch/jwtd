@@ -1,4 +1,5 @@
 listen: :443
+project: default
 cert: /etc/jwtd-proxy/jwtd.crt
 hosts:
   jwtd:

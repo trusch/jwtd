@@ -7,9 +7,10 @@ import (
 )
 
 type Config struct {
-	Listen string
-	Cert   string
-	Hosts  map[string]*Host
+	Listen  string
+	Project string
+	Cert    string
+	Hosts   map[string]*Host
 }
 
 type Host struct {

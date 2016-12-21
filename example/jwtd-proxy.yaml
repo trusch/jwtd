@@ -1,9 +1,9 @@
 listen: :443
-project: default
 cert: /etc/jwtd-proxy/jwtd.crt
 hosts:
   jwtd:
     backend: http://jwtd
+    project: default
     tls:
       cert: /etc/jwtd-proxy/jwtd.crt
       key: /etc/jwtd-proxy/jwtd.key
@@ -12,6 +12,7 @@ hosts:
         require: {}
   http-echo:
     backend: http://http-echo
+    project: default
     tls:
       cert: /etc/jwtd-proxy/http-echo.crt
       key: /etc/jwtd-proxy/http-echo.key

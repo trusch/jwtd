@@ -7,14 +7,14 @@ import (
 )
 
 type Config struct {
-	Listen  string
-	Project string
-	Cert    string
-	Hosts   map[string]*Host
+	Listen string
+	Cert   string
+	Hosts  map[string]*Host
 }
 
 type Host struct {
 	Backend string
+	Project string
 	TLS     *TLSConfig
 	Routes  []*Route
 }

@@ -1,7 +1,6 @@
 listen: :443
 cert: /etc/jwtd-proxy/jwtd.crt
 hosts:
-
   jwtd:
     backend: http://jwtd
     tls:
@@ -10,12 +9,11 @@ hosts:
     routes:
       - path: /
         require: {}
-
-  http-echo-1:
-    backend: http://http-echo-1
+  http-echo:
+    backend: http://http-echo
     tls:
-      cert: /etc/jwtd-proxy/http-echo-1.crt
-      key: /etc/jwtd-proxy/http-echo-1.key
+      cert: /etc/jwtd-proxy/http-echo.crt
+      key: /etc/jwtd-proxy/http-echo.key
     routes:
       - path: /admin
         require:
@@ -23,14 +21,5 @@ hosts:
       - path: /user
         require:
           role: user
-      - path: /
-        require: {}
-
-  http-echo-2:
-    backend: http://http-echo-2
-    tls:
-      cert: /etc/jwtd-proxy/http-echo-2.crt
-      key: /etc/jwtd-proxy/http-echo-2.key
-    routes:
       - path: /
         require: {}

@@ -14,17 +14,19 @@ import (
 )
 
 type SingleProxy struct {
+	service string
 	router  *mux.Router
 	proxy   *httputil.ReverseProxy
 	jwtdCrt interface{}
 }
 
-func NewSingleProxy(backend string, routes []*Route, jwtdCrt interface{}) (*SingleProxy, error) {
+func NewSingleProxy(serviceName, backend string, routes []*Route, jwtdCrt interface{}) (*SingleProxy, error) {
 	backendUrl, err := url.Parse(backend)
 	if err != nil {
 		return nil, err
 	}
 	proxy := &SingleProxy{
+		service: serviceName,
 		proxy:   httputil.NewSingleHostReverseProxy(backendUrl),
 		jwtdCrt: jwtdCrt,
 	}
@@ -56,6 +58,17 @@ func (proxy *SingleProxy) buildHandler(required map[string]string) func(w http.R
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(err.Error() + "\n"))
+			return
+		}
+		if service, ok := claims["service"].(string); ok {
+			if service != proxy.service {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("service mismatch\n"))
+				return
+			}
+		} else {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("no valid service field in token\n"))
 			return
 		}
 		if err = proxy.validateNbf(claims); err != nil {

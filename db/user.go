@@ -8,10 +8,10 @@ import (
 )
 
 type User struct {
-	Name         string
-	PasswordHash string
-	Project      string
-	Groups       []string
+	Name         string   `json:"name"`
+	PasswordHash string   `json:"passwordhash,omitempty"`
+	Project      string   `json:"project"`
+	Groups       []string `json:"groups"`
 }
 
 func (db *DB) CreateUser(project, name, password string, groups []string) error {
@@ -37,6 +37,7 @@ func (db *DB) CreateUser(project, name, password string, groups []string) error 
 func (db *DB) GetUser(project, name string) (*User, error) {
 	for _, u := range db.Config.Users {
 		if u.Project == project && u.Name == name {
+			log.Print(u)
 			return u, nil
 		}
 	}

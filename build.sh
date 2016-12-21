@@ -12,5 +12,4 @@ go build -ldflags '-linkmode external -extldflags -static' || exit $?
 docker build -t trusch/jwtd-proxy . || exit $?
 popd >/dev/null
 
-
 exit $?

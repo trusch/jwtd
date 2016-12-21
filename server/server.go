@@ -1,12 +1,12 @@
 package server
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/trusch/jwtd/db"
 	"github.com/trusch/jwtd/jwt"
 )
@@ -25,6 +25,22 @@ type TokenRequest struct {
 }
 
 func Init(path, keyfile string) error {
+	if err := initDB(path); err != nil {
+		return err
+	}
+	initDBReloader(path)
+	if err := initKey(keyfile); err != nil {
+		return err
+	}
+	router := mux.NewRouter()
+	router.Path("/token").Handler(NewTokenHandler())
+	router.PathPrefix("/project/{project}/user").Handler(NewUserHandler())
+	router.PathPrefix("/project/{project}/group").Handler(NewGroupHandler())
+	http.Handle("/", router)
+	return nil
+}
+
+func initDB(path string) error {
 	d, err := db.New(path)
 	if err != nil {
 		d = &db.DB{ConfigPath: path, Config: &db.ConfigFile{}}
@@ -41,6 +57,11 @@ func Init(path, keyfile string) error {
 			return err
 		}
 	}
+	database = d
+	return nil
+}
+
+func initDBReloader(path string) {
 	go func() {
 		stat, _ := os.Stat(path)
 		modtime := stat.ModTime()
@@ -56,13 +77,14 @@ func Init(path, keyfile string) error {
 			time.Sleep(5 * time.Second)
 		}
 	}()
-	database = d
+}
+
+func initKey(keyfile string) error {
 	k, err := jwt.LoadPrivateKey(keyfile)
 	if err != nil {
 		return err
 	}
 	key = k
-	http.HandleFunc("/", handleRequest)
 	return nil
 }
 
@@ -71,48 +93,5 @@ func Serve(uri string) {
 }
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-	request := &TokenRequest{}
-	err := decoder.Decode(request)
-	if err != nil {
-		log.Print("failed request...")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	if request.Project == "" {
-		request.Project = "default"
-	}
 
-	user, err := database.GetUser(request.Project, request.Username)
-	if err != nil {
-		log.Printf("failed request: no such user (%v)", request.Username)
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	if ok, e := user.CheckPassword(request.Password); e != nil || !ok {
-		log.Printf("failed request: wrong password (user: %v)", request.Username)
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	if ok, e := user.CheckRights(database, request.Service, request.Labels); e != nil || !ok {
-		log.Printf("failed request: no rights (user: %v service: %v, labels: %v)", request.Username, request.Service, request.Labels)
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	claims := jwt.Claims{
-		"user":    request.Username,
-		"service": request.Service,
-		"project": request.Project,
-		"labels":  request.Labels,
-		"nbf":     time.Now(),
-		"exp":     time.Now().Add(10 * time.Minute),
-	}
-	token, err := jwt.CreateToken(claims, key)
-	if err != nil {
-		log.Print("failed request: can not generate token (wtf?!)")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	log.Printf("successfully created token (user: %v service: %v, labels: %v)", request.Username, request.Service, request.Labels)
-	w.Write([]byte(token))
 }

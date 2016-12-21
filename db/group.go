@@ -3,9 +3,9 @@ package db
 import "errors"
 
 type Group struct {
-	Name    string
-	Project string
-	Rights  map[string]map[string]string
+	Name    string                       `json:"name"`
+	Project string                       `json:"project"`
+	Rights  map[string]map[string]string `json:"rights"`
 }
 
 func (db *DB) CreateGroup(project, name string, rights map[string]map[string]string) error {

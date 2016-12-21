@@ -1,0 +1,12 @@
+users:
+- name: admin
+  passwordhash: $2a$10$MI8XVbHk5tCJyuMqiIsJVegY4LLqPLN5gqbvN.jUu8q17yHOJG.vW
+  project: default
+  groups:
+  - jwtd-admin
+groups:
+- name: jwtd-admin
+  project: default
+  rights:
+    jwtd:
+      role: admin

@@ -8,8 +8,11 @@ hosts:
       cert: /etc/jwtd-proxy/jwtd.crt
       key: /etc/jwtd-proxy/jwtd.key
     routes:
-      - path: /
+      - path: /token
         require: {}
+      - path: /
+        require:
+          role: admin
   http-echo:
     backend: http://http-echo
     project: default

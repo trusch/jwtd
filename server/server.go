@@ -66,8 +66,8 @@ func Init(path, keyfile string) error {
 	return nil
 }
 
-func Serve(uri, certfile, keyfile string) {
-	log.Fatal(http.ListenAndServeTLS(uri, certfile, keyfile, nil))
+func Serve(uri string) {
+	log.Fatal(http.ListenAndServe(uri, nil))
 }
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {

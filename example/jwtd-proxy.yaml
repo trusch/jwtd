@@ -1,9 +1,36 @@
-listen: :8080
+listen: :443
 cert: /etc/jwtd-proxy/jwtd.crt
 hosts:
-  localhost:
-    backend: http://whoami:8000
+
+  jwtd:
+    backend: http://jwtd
+    tls:
+      cert: /etc/jwtd-proxy/jwtd.crt
+      key: /etc/jwtd-proxy/jwtd.key
     routes:
       - path: /
+        require: {}
+
+  http-echo-1:
+    backend: http://http-echo-1
+    tls:
+      cert: /etc/jwtd-proxy/http-echo-1.crt
+      key: /etc/jwtd-proxy/http-echo-1.key
+    routes:
+      - path: /admin
         require:
-          scope: admin
+          role: admin
+      - path: /user
+        require:
+          role: user
+      - path: /
+        require: {}
+
+  http-echo-2:
+    backend: http://http-echo-2
+    tls:
+      cert: /etc/jwtd-proxy/http-echo-2.crt
+      key: /etc/jwtd-proxy/http-echo-2.key
+    routes:
+      - path: /
+        require: {}

@@ -7,10 +7,9 @@ import (
 	"github.com/trusch/jwtd/server"
 )
 
-var certFile = flag.String("cert", "/etc/jwtd/jwtd.crt", "certfile")
 var keyFile = flag.String("key", "/etc/jwtd/jwtd.key", "keyfile")
 var configFile = flag.String("config", "/etc/jwtd/config.yaml", "config path")
-var listen = flag.String("listen", ":443", "listen address")
+var listen = flag.String("listen", ":80", "listen address")
 
 func main() {
 	log.SetFlags(log.Lshortfile)
@@ -19,5 +18,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	server.Serve(*listen, *certFile, *keyFile)
+	server.Serve(*listen)
 }

@@ -5,14 +5,19 @@ users:
   groups:
   - admin
   - user
+- name: user
+  passwordhash: $2a$10$krL/TqLf3y66sl8RLbRYtOeJkkysy5ZjuTX9oBpuaiqtlC8h1LkTi
+  project: default
+  groups:
+  - user
 groups:
 - name: admin
   project: default
   rights:
-    whoami:
-      scope: admin
+    http-echo:
+      role: admin
 - name: user
   project: default
   rights:
-    whoami:
-      scope: user
+    http-echo:
+      role: user

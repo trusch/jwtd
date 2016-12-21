@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -32,38 +33,44 @@ func NewSingleProxy(backend string, routes []*Route, jwtdCrt interface{}) (*Sing
 }
 
 func (proxy *SingleProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Print("handle request for ", r.URL)
 	proxy.router.ServeHTTP(w, r)
 }
 
 func (proxy *SingleProxy) constructRouter(routes []*Route) {
 	r := mux.NewRouter()
 	for _, route := range routes {
-		r.HandleFunc(route.Path, proxy.buildHandler(route.Require))
+		log.Print("create route ", route.Path)
+		r.PathPrefix(route.Path).HandlerFunc(proxy.buildHandler(route.Require))
 	}
 	proxy.router = r
 }
 
 func (proxy *SingleProxy) buildHandler(required map[string]string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if len(required) == 0 {
+			proxy.proxy.ServeHTTP(w, r)
+			return
+		}
 		claims, err := jwt.GetClaimsFromRequest(r, proxy.jwtdCrt)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(err.Error()))
+			w.Write([]byte(err.Error() + "\n"))
 			return
 		}
 		if err = proxy.validateNbf(claims); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(err.Error()))
+			w.Write([]byte(err.Error() + "\n"))
 			return
 		}
 		if err = proxy.validateExp(claims); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(err.Error()))
+			w.Write([]byte(err.Error() + "\n"))
 			return
 		}
 		if err = proxy.validateLabels(claims, required); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(err.Error()))
+			w.Write([]byte(err.Error() + "\n"))
 			return
 		}
 		proxy.proxy.ServeHTTP(w, r)

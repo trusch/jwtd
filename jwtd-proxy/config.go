@@ -45,3 +45,11 @@ func (cfg *Config) String() string {
 	bs, _ := yaml.Marshal(cfg)
 	return string(bs)
 }
+
+func (cfg *Config) GetCerts() []*TLSConfig {
+	res := make([]*TLSConfig, 0, len(cfg.Hosts))
+	for _, hostCfg := range cfg.Hosts {
+		res = append(res, hostCfg.TLS)
+	}
+	return res
+}

@@ -26,7 +26,7 @@ func NewProxy(cfg *Config) (*Proxy, error) {
 		if err != nil {
 			return nil, err
 		}
-		r.Host(host).Subrouter().Handle("/", singleProxy)
+		r.Host(host).Handler(singleProxy)
 	}
 	proxy.router = r
 	return proxy, nil

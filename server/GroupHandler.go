@@ -51,7 +51,7 @@ func (h *GroupHandler) handleGetGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	group, err := database.GetGroup(vars["project"], vars["group"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -64,7 +64,7 @@ func (h *GroupHandler) handleDeleteGroup(w http.ResponseWriter, r *http.Request)
 	vars := mux.Vars(r)
 	err := database.DelGroup(vars["project"], vars["group"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -101,7 +101,7 @@ func (h *GroupHandler) handleUpdateGroup(w http.ResponseWriter, r *http.Request)
 	group := &db.Group{}
 	err := decoder.Decode(group)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
 		return
 	}

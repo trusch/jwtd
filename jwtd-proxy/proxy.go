@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -33,5 +34,6 @@ func NewProxy(cfg *Config) (*Proxy, error) {
 }
 
 func (proxy *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Print("incoming request for host: ", r.Host)
 	proxy.router.ServeHTTP(w, r)
 }

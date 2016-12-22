@@ -65,7 +65,7 @@ function setupUserAndGroup {
   echo "get user list"
   doGetRequest $jwtdAdminToken https://jwtd/project/default/user
   echo "create user 'example'"
-  doPostRequest $jwtdAdminToken https://jwtd/project/default/user "username=example&password=example"
+  doPostRequest $jwtdAdminToken https://jwtd/project/default/user '{"username":"example","password":"example"}'
   echo "get user 'example'"
   doGetRequest $jwtdAdminToken https://jwtd/project/default/user/example
   echo "create group 'http-echo-admin'"
@@ -75,9 +75,9 @@ function setupUserAndGroup {
   echo "get group 'http-echo-admin'"
   doGetRequest $jwtdAdminToken https://jwtd/project/default/group/http-echo-admin
   echo "add user 'admin' to 'http-echo-admin' and 'http-echo-user' group"
-  doPatchRequest $jwtdAdminToken https://jwtd/project/default/user/admin 'group=jwtd-admin&group=http-echo-admin&group=http-echo-user'
+  doPatchRequest $jwtdAdminToken https://jwtd/project/default/user/admin '{"groups":["jwtd-admin","http-echo-admin","http-echo-user"]}'
   echo "add user 'example' to 'http-echo-user' group"
-  doPatchRequest $jwtdAdminToken https://jwtd/project/default/user/example 'group=http-echo-user'
+  doPatchRequest $jwtdAdminToken https://jwtd/project/default/user/example '{"groups":["http-echo-user"]}'
 }
 
 function testIt {

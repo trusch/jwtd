@@ -37,14 +37,14 @@ func NewSingleProxy(project, serviceName, backend string, routes []*Route, jwtdC
 }
 
 func (proxy *SingleProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Print("handle request for ", r.URL)
+	log.Printf("service: %v url: %v", proxy.service, r.URL)
 	proxy.router.ServeHTTP(w, r)
 }
 
 func (proxy *SingleProxy) constructRouter(routes []*Route) {
 	r := mux.NewRouter()
 	for _, route := range routes {
-		log.Print("create route ", route.Path)
+		log.Printf("service: %v url: %v", proxy.service, route.Path)
 		r.PathPrefix(route.Path).HandlerFunc(proxy.buildHandler(route.Require))
 	}
 	proxy.router = r

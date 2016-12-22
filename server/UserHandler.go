@@ -13,6 +13,12 @@ type UserHandler struct {
 	router *mux.Router
 }
 
+type UserData struct {
+	Username string   `json:"username"`
+	Password string   `json:"password"`
+	Groups   []string `json:"groups"`
+}
+
 func NewUserHandler() *UserHandler {
 	handler := &UserHandler{mux.NewRouter()}
 	handler.router.Path("/project/{project}/user").Methods("GET").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +43,7 @@ func (h *UserHandler) handleGetUsers(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	users, err := database.ListUsers(vars["project"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -54,7 +60,7 @@ func (h *UserHandler) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user, err := database.GetUser(vars["project"], vars["user"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -68,7 +74,7 @@ func (h *UserHandler) handleDeleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	err := database.DelUser(vars["project"], vars["user"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -77,14 +83,15 @@ func (h *UserHandler) handleDeleteUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	err := r.ParseForm()
-	var (
-		project  = vars["project"]
-		username = r.FormValue("username")
-		password = r.FormValue("password")
-		groups   = r.Form["group"]
-	)
-	err = database.CreateUser(project, username, password, groups)
+	userData := &UserData{}
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(userData)
+	if userData.Username == "" || userData.Password == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("username and password needed"))
+		return
+	}
+	err = database.CreateUser(vars["project"], userData.Username, userData.Password, userData.Groups)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
@@ -95,26 +102,26 @@ func (h *UserHandler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	err := r.ParseForm()
 	var (
 		project  = vars["project"]
 		username = vars["user"]
 		password string
 		groups   []string
 	)
+	userData := &UserData{}
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(userData)
+	password = userData.Password
+	groups = userData.Groups
 	user, err := database.GetUser(project, username)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	log.Print(user)
-	if g, ok := r.Form["group"]; ok {
-		groups = g
-	} else {
-		groups = user.Groups
-	}
+
 	if password != "" {
+		groups = user.Groups
 		err = database.DelUser(project, username)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)

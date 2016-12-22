@@ -7,7 +7,7 @@ import (
 )
 
 func (s *JWTDSuite) TestListUsers() {
-	token, err := s.GetToken("default", "admin", "admin", "jwtd", "role", "admin")
+	token, err := s.GetToken("default", "admin", "admin", "jwtd", []*Label{&Label{"role", "admin"}})
 	s.NoError(err)
 	s.NotEmpty(token)
 	resp, err := s.DoRequest("jwtd", "GET", "/project/default/user", token, "")
@@ -21,7 +21,7 @@ func (s *JWTDSuite) TestListUsers() {
 }
 
 func (s *JWTDSuite) TestGetUser() {
-	token, err := s.GetToken("default", "admin", "admin", "jwtd", "role", "admin")
+	token, err := s.GetToken("default", "admin", "admin", "jwtd", []*Label{&Label{"role", "admin"}})
 	s.NoError(err)
 	s.NotEmpty(token)
 	resp, err := s.DoRequest("jwtd", "GET", "/project/default/user/admin", token, "")
@@ -33,7 +33,7 @@ func (s *JWTDSuite) TestGetUser() {
 }
 
 func (s *JWTDSuite) TestGetNonExistingUser() {
-	token, err := s.GetToken("default", "admin", "admin", "jwtd", "role", "admin")
+	token, err := s.GetToken("default", "admin", "admin", "jwtd", []*Label{&Label{"role", "admin"}})
 	s.NoError(err)
 	s.NotEmpty(token)
 	_, err = s.DoRequest("jwtd", "GET", "/project/default/user/wrong", token, "")
@@ -42,7 +42,7 @@ func (s *JWTDSuite) TestGetNonExistingUser() {
 }
 
 func (s *JWTDSuite) TestCreateUser() {
-	token, err := s.GetToken("default", "admin", "admin", "jwtd", "role", "admin")
+	token, err := s.GetToken("default", "admin", "admin", "jwtd", []*Label{&Label{"role", "admin"}})
 	s.NoError(err)
 	s.NotEmpty(token)
 	resp, err := s.DoRequest("jwtd", "POST", "/project/default/user", token, `{"username":"test","password":"test","groups":["http-echo-user"]}`)
@@ -58,7 +58,7 @@ func (s *JWTDSuite) TestCreateUser() {
 }
 
 func (s *JWTDSuite) TestUpdateUser() {
-	token, err := s.GetToken("default", "admin", "admin", "jwtd", "role", "admin")
+	token, err := s.GetToken("default", "admin", "admin", "jwtd", []*Label{&Label{"role", "admin"}})
 	s.NoError(err)
 	s.NotEmpty(token)
 	resp, err := s.DoRequest("jwtd", "PATCH", "/project/default/user/user", token, `{"groups":[]}`)
@@ -74,7 +74,7 @@ func (s *JWTDSuite) TestUpdateUser() {
 }
 
 func (s *JWTDSuite) TestDeleteUser() {
-	token, err := s.GetToken("default", "admin", "admin", "jwtd", "role", "admin")
+	token, err := s.GetToken("default", "admin", "admin", "jwtd", []*Label{&Label{"role", "admin"}})
 	s.NoError(err)
 	s.NotEmpty(token)
 	resp, err := s.DoRequest("jwtd", "POST", "/project/default/user", token, `{"username":"test","password":"test","groups":["http-echo-user"]}`)

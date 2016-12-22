@@ -70,10 +70,11 @@ func (user *User) CheckRights(db *DB, service string, labels map[string]string) 
 			log.Printf("Error loading group %v: %v", groupName, err)
 			continue
 		}
-		for key, value := range group.Rights[service] {
-			for k, v := range labels {
-				if key == k && value == v {
+		for requestedKey, requestedValue := range labels {
+			for key, value := range group.Rights[service] {
+				if (key == "*" || key == requestedKey) && (value == "*" || value == requestedValue) {
 					toAck -= 1
+					break
 				}
 			}
 		}

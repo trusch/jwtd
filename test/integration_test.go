@@ -20,6 +20,11 @@ type JWTDSuite struct {
 	suite.Suite
 }
 
+type Label struct {
+	Key   string
+	Value string
+}
+
 func (s *JWTDSuite) SetupSuite() {
 	script := `
   cp jwtd.yaml.tmpl jwtd.yaml
@@ -108,8 +113,15 @@ func (s *JWTDSuite) reset() {
 	cmd.Run()
 }
 
-func (s *JWTDSuite) GetToken(project, username, password, service, key, value string) (string, error) {
-	payload := fmt.Sprintf(`{"project":"%v","username":"%v","password":"%v","service":"%v","labels":{"%v":"%v"}}`, project, username, password, service, key, value)
+func (s *JWTDSuite) GetToken(project, username, password, service string, labels []*Label) (string, error) {
+	labelStr := ""
+	for idx, label := range labels {
+		if idx != 0 {
+			labelStr += ","
+		}
+		labelStr += fmt.Sprintf(`"%v":"%v"`, label.Key, label.Value)
+	}
+	payload := fmt.Sprintf(`{"project":"%v","username":"%v","password":"%v","service":"%v","labels":{%v}}`, project, username, password, service, labelStr)
 	token, err := s.DoRequest("jwtd", "POST", "/token", "", payload)
 	if err != nil {
 		return "", err

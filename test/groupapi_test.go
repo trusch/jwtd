@@ -7,7 +7,7 @@ import (
 )
 
 func (s *JWTDSuite) TestListGroups() {
-	token, err := s.GetToken("default", "admin", "admin", "jwtd", "role", "admin")
+	token, err := s.GetToken("default", "admin", "admin", "jwtd", []*Label{&Label{"role", "admin"}})
 	s.NoError(err)
 	s.NotEmpty(token)
 	resp, err := s.DoRequest("jwtd", "GET", "/project/default/group", token, "")
@@ -22,7 +22,7 @@ func (s *JWTDSuite) TestListGroups() {
 }
 
 func (s *JWTDSuite) TestGetGroup() {
-	token, err := s.GetToken("default", "admin", "admin", "jwtd", "role", "admin")
+	token, err := s.GetToken("default", "admin", "admin", "jwtd", []*Label{&Label{"role", "admin"}})
 	s.NoError(err)
 	s.NotEmpty(token)
 	resp, err := s.DoRequest("jwtd", "GET", "/project/default/group/jwtd-admin", token, "")
@@ -36,7 +36,7 @@ func (s *JWTDSuite) TestGetGroup() {
 }
 
 func (s *JWTDSuite) TestDeleteGroup() {
-	token, err := s.GetToken("default", "admin", "admin", "jwtd", "role", "admin")
+	token, err := s.GetToken("default", "admin", "admin", "jwtd", []*Label{&Label{"role", "admin"}})
 	s.NoError(err)
 	s.NotEmpty(token)
 	_, err = s.DoRequest("jwtd", "DELETE", "/project/default/group/http-echo-user", token, "")
@@ -48,7 +48,7 @@ func (s *JWTDSuite) TestDeleteGroup() {
 }
 
 func (s *JWTDSuite) TestCreateGroup() {
-	token, err := s.GetToken("default", "admin", "admin", "jwtd", "role", "admin")
+	token, err := s.GetToken("default", "admin", "admin", "jwtd", []*Label{&Label{"role", "admin"}})
 	s.NoError(err)
 	s.NotEmpty(token)
 	resp, err := s.DoRequest("jwtd", "POST", "/project/default/group", token, `{"name":"http-echo-tester","rights":{"http-echo-1":{"role":"tester"}}}`)
@@ -65,7 +65,7 @@ func (s *JWTDSuite) TestCreateGroup() {
 }
 
 func (s *JWTDSuite) TestUpdateGroup() {
-	token, err := s.GetToken("default", "admin", "admin", "jwtd", "role", "admin")
+	token, err := s.GetToken("default", "admin", "admin", "jwtd", []*Label{&Label{"role", "admin"}})
 	s.NoError(err)
 	s.NotEmpty(token)
 	resp, err := s.DoRequest("jwtd", "POST", "/project/default/group", token, `{"name":"http-echo-tester","rights":{"http-echo-1":{"role":"tester"}}}`)

@@ -7,7 +7,7 @@ users:
   - http-echo-admin
   - http-echo-user
 - name: example
-  passwordhash: $2a$10$UyznSqWcRkX6QIxmtRY4T.ONhlZIaY7sPtKauIy7RloiGwSdFKKiq
+  passwordhash: $2a$10$6sT5zcNL2cNcqT0dKoQNhu.oG7qG2S.VmRGS1.gLzIFxnNcy2aWcS
   project: default
   groups:
   - http-echo-user

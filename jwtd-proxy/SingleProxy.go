@@ -94,13 +94,34 @@ func (proxy *SingleProxy) buildHandler(required map[string]string) func(w http.R
 			w.Write([]byte(err.Error() + "\n"))
 			return
 		}
-		if err = proxy.validateLabels(claims, required); err != nil {
+		if err = proxy.validateLabels(claims, proxy.resolveVariables(required, mux.Vars(r))); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(err.Error() + "\n"))
 			return
 		}
 		proxy.proxy.ServeHTTP(w, r)
 	}
+}
+
+func (proxy *SingleProxy) resolveVariables(reqs map[string]string, vars map[string]string) map[string]string {
+	res := make(map[string]string)
+	for key, value := range reqs {
+		if len(key) > 0 && key[0] == '$' {
+			varName := key[1:]
+			if val, ok := vars[varName]; ok {
+				key = val
+			}
+		}
+		if len(value) > 0 && value[0] == '$' {
+			varName := value[1:]
+			if val, ok := vars[varName]; ok {
+				value = val
+			}
+		}
+		res[key] = value
+	}
+	log.Print(res)
+	return res
 }
 
 func (proxy *SingleProxy) validateNbf(claims map[string]interface{}) error {

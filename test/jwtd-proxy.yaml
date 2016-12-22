@@ -10,7 +10,7 @@ hosts:
     routes:
       - path: /token
         require: {}
-      - path: /
+      - path: /project/{project}
         require:
           role: admin
   http-echo-1:
@@ -20,14 +20,9 @@ hosts:
       cert: /etc/jwtd-proxy/http-echo-1.crt
       key: /etc/jwtd-proxy/http-echo-1.key
     routes:
-      - path: /admin
+      - path: /{routeName}
         require:
-          role: admin
-      - path: /user
-        require:
-          role: user
-      - path: /
-        require: {}
+          role: $routeName
   http-echo-2:
     backend: http://http-echo-2
     project: default
@@ -35,11 +30,6 @@ hosts:
       cert: /etc/jwtd-proxy/http-echo-2.crt
       key: /etc/jwtd-proxy/http-echo-2.key
     routes:
-      - path: /admin
+      - path: /{routeName}
         require:
-          role: admin
-      - path: /user
-        require:
-          role: user
-      - path: /
-        require: {}
+          role: $routeName

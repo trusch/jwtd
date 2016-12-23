@@ -8,7 +8,7 @@ import (
 )
 
 var keyFile = flag.String("key", "/etc/jwtd/jwtd.key", "keyfile")
-var configFile = flag.String("config", "/etc/jwtd/config.yaml", "config path")
+var configFile = flag.String("config", "/etc/jwtd/", "config path")
 var listen = flag.String("listen", ":80", "listen address")
 
 func main() {

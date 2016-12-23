@@ -6,7 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/trusch/jwtd/db"
+
+	st0rage "github.com/trusch/jwtd/storage"
 )
 
 type GroupHandler struct {
@@ -35,7 +36,7 @@ func NewGroupHandler() *GroupHandler {
 
 func (h *GroupHandler) handleGetGroups(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	groups, err := database.ListGroups(vars["project"])
+	groups, err := storage.ListGroups(vars["project"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
@@ -49,7 +50,7 @@ func (h *GroupHandler) handleGetGroups(w http.ResponseWriter, r *http.Request) {
 
 func (h *GroupHandler) handleGetGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	group, err := database.GetGroup(vars["project"], vars["group"])
+	group, err := storage.GetGroup(vars["project"], vars["group"])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
@@ -62,7 +63,7 @@ func (h *GroupHandler) handleGetGroup(w http.ResponseWriter, r *http.Request) {
 
 func (h *GroupHandler) handleDeleteGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	err := database.DelGroup(vars["project"], vars["group"])
+	err := storage.DelGroup(vars["project"], vars["group"])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
@@ -75,14 +76,14 @@ func (h *GroupHandler) handleCreateGroup(w http.ResponseWriter, r *http.Request)
 	vars := mux.Vars(r)
 	project := vars["project"]
 	decoder := json.NewDecoder(r.Body)
-	group := &db.Group{}
+	group := &st0rage.Group{}
 	err := decoder.Decode(group)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	err = database.CreateGroup(project, group.Name, group.Rights)
+	err = storage.CreateGroup(project, group.Name, group.Rights)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
@@ -98,7 +99,7 @@ func (h *GroupHandler) handleUpdateGroup(w http.ResponseWriter, r *http.Request)
 		groupname = vars["group"]
 	)
 	decoder := json.NewDecoder(r.Body)
-	group := &db.Group{}
+	group := &st0rage.Group{}
 	err := decoder.Decode(group)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -106,8 +107,7 @@ func (h *GroupHandler) handleUpdateGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	group.Name = groupname
-	group.Project = project
-	err = database.UpdateGroup(group)
+	err = storage.UpdateGroup(project, group)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))

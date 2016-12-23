@@ -36,7 +36,7 @@ var delRightCmd = &cobra.Command{
 		} else {
 			log.Fatal("no such label key")
 		}
-		err = database.UpdateGroup(group)
+		err = database.UpdateGroup(project, group)
 		if err != nil {
 			log.Fatal(err)
 		}

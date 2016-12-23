@@ -41,7 +41,7 @@ var updateUserCmd = &cobra.Command{
 		if len(groups) > 0 {
 			user.Groups = groups
 		}
-		err = database.UpdateUser(user)
+		err = database.UpdateUser(project, user)
 		if err != nil {
 			log.Fatal(err)
 		}

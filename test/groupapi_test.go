@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/trusch/jwtd/db"
+	"github.com/trusch/jwtd/storage"
 )
 
 func (s *JWTDSuite) TestListGroups() {
@@ -12,7 +12,7 @@ func (s *JWTDSuite) TestListGroups() {
 	s.NotEmpty(token)
 	resp, err := s.DoRequest("jwtd", "GET", "/project/default/group", token, "")
 	s.NoError(err)
-	groups := []*db.Group{}
+	groups := []*storage.Group{}
 	err = json.Unmarshal([]byte(resp), &groups)
 	s.NoError(err)
 	s.Equal(3, len(groups))
@@ -27,11 +27,10 @@ func (s *JWTDSuite) TestGetGroup() {
 	s.NotEmpty(token)
 	resp, err := s.DoRequest("jwtd", "GET", "/project/default/group/jwtd-admin", token, "")
 	s.NoError(err)
-	group := &db.Group{}
+	group := &storage.Group{}
 	err = json.Unmarshal([]byte(resp), group)
 	s.NoError(err)
 	s.Equal("jwtd-admin", group.Name)
-	s.Equal("default", group.Project)
 	s.Equal(map[string]map[string]string{"jwtd": map[string]string{"role": "admin"}}, group.Rights)
 }
 
@@ -56,7 +55,7 @@ func (s *JWTDSuite) TestCreateGroup() {
 	s.Equal("create ok", resp)
 	resp, err = s.DoRequest("jwtd", "GET", "/project/default/group/http-echo-tester", token, "")
 	s.NoError(err)
-	group := &db.Group{}
+	group := &storage.Group{}
 	err = json.Unmarshal([]byte(resp), group)
 	s.NoError(err)
 	s.Equal("http-echo-tester", group.Name)
@@ -76,7 +75,7 @@ func (s *JWTDSuite) TestUpdateGroup() {
 	s.Equal("update ok", resp)
 	resp, err = s.DoRequest("jwtd", "GET", "/project/default/group/http-echo-tester", token, "")
 	s.NoError(err)
-	group := &db.Group{}
+	group := &storage.Group{}
 	err = json.Unmarshal([]byte(resp), group)
 	s.NoError(err)
 	s.Equal("http-echo-tester", group.Name)

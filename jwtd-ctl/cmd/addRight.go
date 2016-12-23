@@ -37,7 +37,7 @@ var addRightCmd = &cobra.Command{
 		} else {
 			group.Rights[service] = map[string]string{key: value}
 		}
-		err = database.UpdateGroup(group)
+		err = database.UpdateGroup(project, group)
 		if err != nil {
 			log.Fatal(err)
 		}

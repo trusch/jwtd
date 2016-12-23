@@ -28,7 +28,7 @@ func (h *TokenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		request.Project = "default"
 	}
 
-	user, err := database.GetUser(request.Project, request.Username)
+	user, err := storage.GetUser(request.Project, request.Username)
 	if err != nil {
 		log.Printf("failed request: no such user (%v)", request.Username)
 		w.WriteHeader(http.StatusUnauthorized)
@@ -39,7 +39,7 @@ func (h *TokenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	if ok, e := user.CheckRights(database, request.Service, request.Labels); e != nil || !ok {
+	if ok, e := user.CheckRights(storage, request.Project, request.Service, request.Labels); e != nil || !ok {
 		log.Printf("failed request: no rights (user: %v service: %v, labels: %v)", request.Username, request.Service, request.Labels)
 		w.WriteHeader(http.StatusUnauthorized)
 		return

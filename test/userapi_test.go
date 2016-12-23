@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/trusch/jwtd/db"
+	"github.com/trusch/jwtd/storage"
 )
 
 func (s *JWTDSuite) TestListUsers() {
@@ -12,7 +12,7 @@ func (s *JWTDSuite) TestListUsers() {
 	s.NotEmpty(token)
 	resp, err := s.DoRequest("jwtd", "GET", "/project/default/user", token, "")
 	s.NoError(err)
-	users := []*db.User{}
+	users := []*storage.User{}
 	err = json.Unmarshal([]byte(resp), &users)
 	s.NoError(err)
 	s.Equal(2, len(users))
@@ -26,7 +26,7 @@ func (s *JWTDSuite) TestGetUser() {
 	s.NotEmpty(token)
 	resp, err := s.DoRequest("jwtd", "GET", "/project/default/user/admin", token, "")
 	s.NoError(err)
-	user := &db.User{}
+	user := &storage.User{}
 	err = json.Unmarshal([]byte(resp), user)
 	s.NoError(err)
 	s.Equal("admin", user.Name)
@@ -50,7 +50,7 @@ func (s *JWTDSuite) TestCreateUser() {
 	s.Equal("create ok", resp)
 	resp, err = s.DoRequest("jwtd", "GET", "/project/default/user/test", token, "")
 	s.NoError(err)
-	user := &db.User{}
+	user := &storage.User{}
 	err = json.Unmarshal([]byte(resp), user)
 	s.NoError(err)
 	s.Equal("test", user.Name)
@@ -66,7 +66,7 @@ func (s *JWTDSuite) TestUpdateUser() {
 	s.Equal("update ok", resp)
 	resp, err = s.DoRequest("jwtd", "GET", "/project/default/user/user", token, "")
 	s.NoError(err)
-	user := &db.User{}
+	user := &storage.User{}
 	err = json.Unmarshal([]byte(resp), user)
 	s.NoError(err)
 	s.Equal([]string{}, user.Groups)

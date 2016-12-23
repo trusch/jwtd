@@ -18,7 +18,6 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/trusch/jwtd/db"
 )
 
 // initCmd represents the init command
@@ -32,14 +31,14 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		configPath, _ := cmd.Flags().GetString("config")
 		project, _ := cmd.Flags().GetString("project")
-		database := &db.DB{ConfigPath: configPath, Config: &db.ConfigFile{}}
+		database := getDB()
+		database.CreateProject(project)
 		err := database.CreateUser(project, "admin", "admin", []string{"admin"})
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = database.CreateGroup("default", "admin", map[string]map[string]string{
+		err = database.CreateGroup(project, "admin", map[string]map[string]string{
 			"jwtd": map[string]string{
 				"scope": "admin",
 			},

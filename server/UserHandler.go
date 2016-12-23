@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/trusch/jwtd/db"
+	st0rage "github.com/trusch/jwtd/storage"
 )
 
 type UserHandler struct {
@@ -41,15 +41,15 @@ func NewUserHandler() *UserHandler {
 
 func (h *UserHandler) handleGetUsers(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	users, err := database.ListUsers(vars["project"])
+	users, err := storage.ListUsers(vars["project"])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	res := make([]*db.User, len(users))
+	res := make([]*st0rage.User, len(users))
 	for i, user := range users {
-		res[i] = &db.User{Name: user.Name, Project: user.Project, Groups: user.Groups}
+		res[i] = &st0rage.User{Name: user.Name, Groups: user.Groups}
 	}
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
@@ -58,13 +58,13 @@ func (h *UserHandler) handleGetUsers(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	user, err := database.GetUser(vars["project"], vars["user"])
+	user, err := storage.GetUser(vars["project"], vars["user"])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	res := &db.User{Name: user.Name, Project: user.Project, Groups: user.Groups}
+	res := &st0rage.User{Name: user.Name, Groups: user.Groups}
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 	encoder.Encode(res)
@@ -72,7 +72,7 @@ func (h *UserHandler) handleGetUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) handleDeleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	err := database.DelUser(vars["project"], vars["user"])
+	err := storage.DelUser(vars["project"], vars["user"])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
@@ -87,12 +87,14 @@ func (h *UserHandler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(userData)
 	if userData.Username == "" || userData.Password == "" {
+		log.Print("invalid data in create user request")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("username and password needed"))
 		return
 	}
-	err = database.CreateUser(vars["project"], userData.Username, userData.Password, userData.Groups)
+	err = storage.CreateUser(vars["project"], userData.Username, userData.Password, userData.Groups)
 	if err != nil {
+		log.Print("error in create user request storage call: ", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
@@ -113,7 +115,7 @@ func (h *UserHandler) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(userData)
 	password = userData.Password
 	groups = userData.Groups
-	user, err := database.GetUser(project, username)
+	user, err := storage.GetUser(project, username)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
@@ -122,13 +124,13 @@ func (h *UserHandler) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	if password != "" {
 		groups = user.Groups
-		err = database.DelUser(project, username)
+		err = storage.DelUser(project, username)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 			return
 		}
-		err = database.CreateUser(project, username, password, groups)
+		err = storage.CreateUser(project, username, password, groups)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
@@ -136,7 +138,7 @@ func (h *UserHandler) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		user.Groups = groups
-		err = database.UpdateUser(user)
+		err = storage.UpdateUser(project, user)
 		log.Print(user)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)

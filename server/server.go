@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/trusch/jwtd/db"
 	"github.com/trusch/jwtd/jwt"
+	st0rage "github.com/trusch/jwtd/storage"
 )
 
 var (
-	database *db.DB
-	key      interface{}
+	storage *st0rage.Storage
+	key     interface{}
 )
 
 type TokenRequest struct {
@@ -41,23 +41,8 @@ func Init(path, keyfile string) error {
 }
 
 func initDB(path string) error {
-	d, err := db.New(path)
-	if err != nil {
-		d = &db.DB{ConfigPath: path, Config: &db.ConfigFile{}}
-		e := d.CreateUser("default", "admin", "admin", []string{"admin"})
-		if e != nil {
-			return e
-		}
-		e = d.CreateGroup("default", "admin", map[string]map[string]string{
-			"jwtd": map[string]string{
-				"scope": "admin",
-			},
-		})
-		if e != nil {
-			return err
-		}
-	}
-	database = d
+	fileStorage := &st0rage.FileBasedStorageBackend{ConfigDir: path}
+	storage = st0rage.New(fileStorage)
 	return nil
 }
 
@@ -69,10 +54,7 @@ func initDBReloader(path string) {
 			stat, _ = os.Stat(path)
 			newModtime := stat.ModTime()
 			if modtime.Unix() != newModtime.Unix() {
-				dNew, e := db.New(path)
-				if e == nil {
-					database = dNew
-				}
+				storage.Reset()
 			}
 			time.Sleep(5 * time.Second)
 		}
@@ -90,8 +72,4 @@ func initKey(keyfile string) error {
 
 func Serve(uri string) {
 	log.Fatal(http.ListenAndServe(uri, nil))
-}
-
-func handleRequest(w http.ResponseWriter, r *http.Request) {
-
 }

@@ -1,31 +1,26 @@
 users:
 - name: admin
   passwordhash: $2a$10$MI8XVbHk5tCJyuMqiIsJVegY4LLqPLN5gqbvN.jUu8q17yHOJG.vW
-  project: default
   groups:
   - jwtd-admin
   - http-echo-admin
 - name: user
   passwordhash: $2a$10$/N8QKhhzetnre/bRDzR1xufkFXw418WxAaJHTf3857gZNo5XPT0H6
-  project: default
   groups:
   - http-echo-user
 
 groups:
 - name: jwtd-admin
-  project: default
   rights:
     jwtd:
       role: admin
 - name: http-echo-admin
-  project: default
   rights:
     http-echo-1:
       role: "*"
     http-echo-2:
       role: "*"
 - name: http-echo-user
-  project: default
   rights:
     http-echo-1:
       role: user

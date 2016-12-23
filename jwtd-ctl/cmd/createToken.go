@@ -43,7 +43,7 @@ var createTokenCmd = &cobra.Command{
 			if ok, e := user.CheckPassword(password); e != nil || !ok {
 				log.Fatalf("failed request: wrong password (user: %v)", username)
 			}
-			if ok, e := user.CheckRights(database, service, labels); e != nil || !ok {
+			if ok, e := user.CheckRights(database, project, service, labels); e != nil || !ok {
 				log.Fatalf("failed request: no rights (user: %v service: %v, labels: %v)", username, service, labels)
 			}
 		}

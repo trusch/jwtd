@@ -27,13 +27,13 @@ type Label struct {
 
 func (s *JWTDSuite) SetupSuite() {
 	script := `
-  cp jwtd.yaml.tmpl jwtd.yaml
+  cp jwtd.yaml.tmpl default.yaml
 
   docker stop jwtd
   docker rm jwtd
   docker run --name jwtd -d \
     -v $(pwd)/pki/jwtd.key:/etc/jwtd/jwtd.key \
-    -v $(pwd)/jwtd.yaml:/etc/jwtd/config.yaml \
+    -v $(pwd)/default.yaml:/etc/jwtd/default.yaml \
     trusch/jwtd
 
   docker stop http-echo-1
@@ -61,6 +61,8 @@ func (s *JWTDSuite) SetupSuite() {
     trusch/jwtd-proxy
   `
 	cmd := exec.Command("/bin/bash", "-c", script)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	fmt.Print("prepare test... ")
 	err := cmd.Run()
 	fmt.Println("done.")
@@ -101,12 +103,12 @@ func (s *JWTDSuite) SetupSuite() {
 
 func (s *JWTDSuite) reset() {
 	script := `
-  docker stop jwtd
+	docker stop jwtd
   docker rm jwtd
-  cp jwtd.yaml.tmpl jwtd.yaml
+	cp jwtd.yaml.tmpl default.yaml
   docker run --name jwtd -d \
     -v $(pwd)/pki/jwtd.key:/etc/jwtd/jwtd.key \
-    -v $(pwd)/jwtd.yaml:/etc/jwtd/config.yaml \
+    -v $(pwd)/default.yaml:/etc/jwtd/default.yaml \
     trusch/jwtd
   `
 	cmd := exec.Command("/bin/bash", "-c", script)

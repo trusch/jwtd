@@ -2,11 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/trusch/jwtd/db"
+	"github.com/trusch/jwtd/storage"
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -31,15 +30,12 @@ func Execute() {
 }
 
 func init() {
-	RootCmd.PersistentFlags().StringP("config", "c", "/etc/jwtd/config.yaml", "config file")
+	RootCmd.PersistentFlags().StringP("config", "c", "/etc/jwtd/projects", "config file")
 	RootCmd.PersistentFlags().StringP("project", "p", "default", "project to use")
 }
 
-func getDB() *db.DB {
+func getDB() *storage.Storage {
 	config, _ := RootCmd.Flags().GetString("config")
-	db, err := db.New(config)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return db
+	fileStorage := &storage.FileBasedStorageBackend{ConfigDir: config}
+	return storage.New(fileStorage)
 }

@@ -45,7 +45,11 @@ func (proxy *SingleProxy) constructRouter(routes []*Route) {
 	r := mux.NewRouter()
 	for _, route := range routes {
 		log.Printf("service: %v url: %v", proxy.service, route.Path)
-		r.PathPrefix(route.Path).HandlerFunc(proxy.buildHandler(route.Require))
+		sub := r.PathPrefix(route.Path)
+		if len(route.Methods) > 0 {
+			sub = sub.Methods(route.Methods...)
+		}
+		sub.HandlerFunc(proxy.buildHandler(route.Require))
 	}
 	proxy.router = r
 }

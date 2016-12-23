@@ -26,6 +26,7 @@ type TLSConfig struct {
 
 type Route struct {
 	Path    string
+	Methods []string
 	Require map[string]string
 }
 

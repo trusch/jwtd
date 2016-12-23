@@ -11,7 +11,7 @@ function setupDocker {
   docker rm jwtd
   docker run --name jwtd -d \
   -v $(pwd)/pki/jwtd.key:/etc/jwtd/jwtd.key \
-  -v $(pwd)/jwtd.yaml:/etc/jwtd/config.yaml \
+  -v $(pwd)/jwtd.yaml:/etc/jwtd/default.yaml \
   trusch/jwtd
 
   docker stop jwtd-proxy

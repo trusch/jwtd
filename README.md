@@ -249,3 +249,51 @@ hosts:
 > curl -k -H "Host: jwtd" -H "Authorization: bearer $token" https://localhost/project/project1/group
 ```
 This should output a list of all groups currently present in your project
+
+## Special Features which will make you happy
+
+### Wildcard Rights in JWTD
+You can specify wildcard rights in a group, so that each user of that group can aquire all labels matching the wildcard.
+As an example you could specify the following:
+```yaml
+users:
+- name: admin
+  passwordhash: $2a$10$VEdYiAT/JfN18pQYJA0OTeoTmTtzxeQhEfQcezQWmZHJsUDA7rgyC
+  groups:
+  - admin
+groups:
+- name: admin
+  rights:
+    service1:
+      role: '*'
+    service2:
+      '*': admin
+    service3:
+      '*': '*'
+```
+The admin user can now :
+* aquire labels for service1 with the key "role" and arbitary values
+* aquire labels for service2 with arbitary keys and the value "admin"
+* aquire arbitary labels for service3
+
+### Variables in Route-Requirement Mapping in jwtd-proxy
+You can use variables in your route definition and use them to specify which labels are needed. This gives you great flexibility with an acceptable complexity-overhead.
+Check the following jwtd-proxy config:
+  ```yaml
+  listen: :443
+  cert: /etc/jwtd/pki/jwtd.crt
+  hosts:
+    service1:
+      backend: http://localhost:8080
+      project: project1
+      tls:
+        cert: /etc/jwtd/pki/service1.crt
+        key: /etc/jwtd/pki/service1.key
+      routes:
+        - path: /{scope}/{action}
+          require:
+            scope: $scope
+            action: $action
+  ```
+If you request /foo/bar this rule will say that you need the labels (scope, foo) and (action, bar).
+If you request /baz/qux this rule will say that you need the labels (scope, baz) and (action, qux).

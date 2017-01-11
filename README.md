@@ -149,6 +149,7 @@ A more complex setup is shown in the `test` directory. It contains the integrati
 
     - `GET /token`
     - body should look like
+    
       ```json
       {
         "project": "my-project",

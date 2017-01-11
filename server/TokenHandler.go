@@ -44,13 +44,23 @@ func (h *TokenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	lifetime := 10 * time.Minute
+	if request.Lifetime != "" {
+		l, e := time.ParseDuration(request.Lifetime)
+		if e != nil {
+			log.Print("failed request...")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		lifetime = l
+	}
 	claims := jwt.Claims{
 		"user":    request.Username,
 		"service": request.Service,
 		"project": request.Project,
 		"labels":  request.Labels,
 		"nbf":     time.Now(),
-		"exp":     time.Now().Add(10 * time.Minute),
+		"exp":     time.Now().Add(lifetime),
 	}
 	token, err := jwt.CreateToken(claims, key)
 	if err != nil {

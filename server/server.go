@@ -21,6 +21,7 @@ type TokenRequest struct {
 	Username string            `json:"username"`
 	Password string            `json:"password"`
 	Service  string            `json:"service"`
+	Lifetime string            `json:"lifetime"`
 	Labels   map[string]string `json:"labels"`
 }
 

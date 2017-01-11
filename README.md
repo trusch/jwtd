@@ -297,3 +297,12 @@ Check the following jwtd-proxy config:
   ```
 If you request /foo/bar this rule will say that you need the labels (scope, foo) and (action, bar).
 If you request /baz/qux this rule will say that you need the labels (scope, baz) and (action, qux).
+
+## Use with docker
+
+There are two docker images on the public dockerhub:
+  * `trusch/jwtd`
+  * `trusch/jwtd-proxy`
+
+Theses images are based on alpine and only contain the binaries. Every tag on this repository should refer to a tagged docker image in the registry.
+So you can either use `trusch/jwtd:latest` which should point to the latest tagged version or use the form `trusch/jwtd:v0.2.3` for explicit version control.

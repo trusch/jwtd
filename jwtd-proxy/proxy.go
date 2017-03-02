@@ -30,6 +30,10 @@ func NewProxy(cfg *Config) (*Proxy, error) {
 		}
 		var handler http.Handler = singleProxy
 		if hostCfg.CORS != nil {
+			log.Printf("use CORS for %v", host)
+			log.Printf("allowed Headers: %v", hostCfg.CORS.AllowedHeaders)
+			log.Printf("allowed Origins: %v", hostCfg.CORS.AllowedOrigins)
+			log.Printf("allowed Methods: %v", hostCfg.CORS.AllowedMethods)
 			headers := handlers.AllowedHeaders(hostCfg.CORS.AllowedHeaders)
 			origins := handlers.AllowedOrigins(hostCfg.CORS.AllowedOrigins)
 			methods := handlers.AllowedMethods(hostCfg.CORS.AllowedMethods)

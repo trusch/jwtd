@@ -16,12 +16,19 @@ type Host struct {
 	Backend string
 	Project string
 	TLS     *TLSConfig
+	CORS    *CORSConfig
 	Routes  []*Route
 }
 
 type TLSConfig struct {
 	Cert string
 	Key  string
+}
+
+type CORSConfig struct {
+	AllowedHeaders []string
+	AllowedOrigins []string
+	AllowedMethods []string
 }
 
 type Route struct {

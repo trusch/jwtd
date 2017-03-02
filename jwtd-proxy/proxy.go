@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/trusch/jwtd/jwt"
 )
@@ -27,7 +28,15 @@ func NewProxy(cfg *Config) (*Proxy, error) {
 		if err != nil {
 			return nil, err
 		}
-		r.Host(host).Handler(singleProxy)
+		var handler http.Handler = singleProxy
+		if hostCfg.CORS != nil {
+			headers := handlers.AllowedHeaders(hostCfg.CORS.AllowedHeaders)
+			origins := handlers.AllowedOrigins(hostCfg.CORS.AllowedOrigins)
+			methods := handlers.AllowedMethods(hostCfg.CORS.AllowedMethods)
+			corsWrapper := handlers.CORS(headers, origins, methods)
+			handler = corsWrapper(handler)
+		}
+		r.Host(host).Handler(handler)
 	}
 	proxy.router = r
 	return proxy, nil

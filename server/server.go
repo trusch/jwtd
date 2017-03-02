@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/trusch/jwtd/jwt"
 	st0rage "github.com/trusch/jwtd/storage"
@@ -38,10 +37,7 @@ func Init(path, keyfile string) error {
 	router.Path("/token").Handler(NewTokenHandler())
 	router.PathPrefix("/project/{project}/user").Handler(NewUserHandler())
 	router.PathPrefix("/project/{project}/group").Handler(NewGroupHandler())
-	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
-	originsOk := handlers.AllowedOrigins([]string{"*"})
-	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"})
-	http.Handle("/", handlers.CORS(headersOk, originsOk, methodsOk)(router))
+	http.Handle("/", router)
 	return nil
 }
 

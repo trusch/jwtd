@@ -26,9 +26,9 @@ type TLSConfig struct {
 }
 
 type CORSConfig struct {
-	AllowedHeaders []string
-	AllowedOrigins []string
-	AllowedMethods []string
+	Headers []string
+	Origins []string
+	Methods []string
 }
 
 type Route struct {

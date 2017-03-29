@@ -133,7 +133,6 @@ func (proxy *SingleProxy) resolveVariables(reqs map[string]string, vars map[stri
 		}
 		res[key] = value
 	}
-	log.Print(res)
 	return res
 }
 

@@ -13,7 +13,7 @@ type FileBasedStorageBackend struct {
 func (backend *FileBasedStorageBackend) Load() (*ProjectConfig, error) {
 	bs, err := ioutil.ReadFile(backend.ConfigFile)
 	if err != nil {
-		return nil, err
+		return &ProjectConfig{}, nil
 	}
 	cfg := &ProjectConfig{}
 	err = yaml.Unmarshal(bs, cfg)

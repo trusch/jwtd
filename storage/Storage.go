@@ -3,29 +3,25 @@ package storage
 import "errors"
 
 type Storage struct {
-	projects map[string]*ProjectConfig
-	backend  StorageBackend
+	cfg     *ProjectConfig
+	backend StorageBackend
 }
 
 func New(backend StorageBackend) *Storage {
-	return &Storage{make(map[string]*ProjectConfig), backend}
+	return &Storage{nil, backend}
 }
 
-func (storage *Storage) GetProjectConfig(project string) (*ProjectConfig, error) {
-	if cfg, ok := storage.projects[project]; ok {
+func (storage *Storage) GetProjectConfig() (*ProjectConfig, error) {
+	if storage.cfg != nil {
+		return storage.cfg, nil
+	}
+	if cfg, err := storage.backend.Load(); err == nil {
+		storage.cfg = cfg
 		return cfg, nil
 	}
-	if cfg, err := storage.backend.Load(project); err == nil {
-		storage.projects[project] = cfg
-		return cfg, nil
-	}
-	return nil, errors.New("no such project")
+	return nil, errors.New("config not found")
 }
 
 func (storage *Storage) Reset() {
-	storage.projects = make(map[string]*ProjectConfig)
-}
-
-func (storage *Storage) CreateProject(project string) {
-	storage.projects[project] = &ProjectConfig{}
+	storage.cfg = nil
 }

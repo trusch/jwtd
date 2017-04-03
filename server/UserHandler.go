@@ -21,27 +21,26 @@ type UserData struct {
 
 func NewUserHandler() *UserHandler {
 	handler := &UserHandler{mux.NewRouter()}
-	handler.router.Path("/project/{project}/user").Methods("GET").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler.router.Path("/user").Methods("GET").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handler.handleGetUsers(w, r)
 	})
-	handler.router.Path("/project/{project}/user").Methods("POST").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler.router.Path("/user").Methods("POST").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handler.handleCreateUser(w, r)
 	})
-	handler.router.Path("/project/{project}/user/{user}").Methods("GET").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler.router.Path("/user/{user}").Methods("GET").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handler.handleGetUser(w, r)
 	})
-	handler.router.Path("/project/{project}/user/{user}").Methods("DELETE").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler.router.Path("/user/{user}").Methods("DELETE").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handler.handleDeleteUser(w, r)
 	})
-	handler.router.Path("/project/{project}/user/{user}").Methods("PATCH").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler.router.Path("/user/{user}").Methods("PATCH").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handler.handleUpdateUser(w, r)
 	})
 	return handler
 }
 
 func (h *UserHandler) handleGetUsers(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	users, err := storage.ListUsers(vars["project"])
+	users, err := storage.ListUsers()
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
@@ -58,7 +57,7 @@ func (h *UserHandler) handleGetUsers(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	user, err := storage.GetUser(vars["project"], vars["user"])
+	user, err := storage.GetUser(vars["user"])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
@@ -72,7 +71,7 @@ func (h *UserHandler) handleGetUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) handleDeleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	err := storage.DelUser(vars["project"], vars["user"])
+	err := storage.DelUser(vars["user"])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
@@ -82,7 +81,6 @@ func (h *UserHandler) handleDeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
 	userData := &UserData{}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(userData)
@@ -92,7 +90,7 @@ func (h *UserHandler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("username and password needed"))
 		return
 	}
-	err = storage.CreateUser(vars["project"], userData.Username, userData.Password, userData.Groups)
+	err = storage.CreateUser(userData.Username, userData.Password, userData.Groups)
 	if err != nil {
 		log.Print("error in create user request storage call: ", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
@@ -105,7 +103,6 @@ func (h *UserHandler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	var (
-		project  = vars["project"]
 		username = vars["user"]
 		password string
 		groups   []string
@@ -115,7 +112,7 @@ func (h *UserHandler) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(userData)
 	password = userData.Password
 	groups = userData.Groups
-	user, err := storage.GetUser(project, username)
+	user, err := storage.GetUser(username)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
@@ -124,13 +121,13 @@ func (h *UserHandler) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	if password != "" {
 		groups = user.Groups
-		err = storage.DelUser(project, username)
+		err = storage.DelUser(username)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 			return
 		}
-		err = storage.CreateUser(project, username, password, groups)
+		err = storage.CreateUser(username, password, groups)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
@@ -138,7 +135,7 @@ func (h *UserHandler) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		user.Groups = groups
-		err = storage.UpdateUser(project, user)
+		err = storage.UpdateUser(user)
 		log.Print(user)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -150,6 +147,5 @@ func (h *UserHandler) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Print("User handler is called!")
 	h.router.ServeHTTP(w, r)
 }

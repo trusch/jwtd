@@ -17,6 +17,6 @@ type ProjectConfig struct {
 }
 
 type StorageBackend interface {
-	Load(project string) (*ProjectConfig, error)
-	Save(project string, cfg *ProjectConfig) error
+	Load() (*ProjectConfig, error)
+	Save(cfg *ProjectConfig) error
 }

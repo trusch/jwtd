@@ -7,8 +7,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (storage *Storage) CreateUser(project, name, password string, groups []string) error {
-	projectConfig, err := storage.GetProjectConfig(project)
+func (storage *Storage) CreateUser(name, password string, groups []string) error {
+	projectConfig, err := storage.GetProjectConfig()
 	if err != nil {
 		return err
 	}
@@ -27,11 +27,11 @@ func (storage *Storage) CreateUser(project, name, password string, groups []stri
 		}
 	}
 	projectConfig.Users = append(projectConfig.Users, user)
-	return storage.backend.Save(project, projectConfig)
+	return storage.backend.Save(projectConfig)
 }
 
-func (storage *Storage) GetUser(project, name string) (*User, error) {
-	projectConfig, err := storage.GetProjectConfig(project)
+func (storage *Storage) GetUser(name string) (*User, error) {
+	projectConfig, err := storage.GetProjectConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -43,37 +43,37 @@ func (storage *Storage) GetUser(project, name string) (*User, error) {
 	return nil, errors.New("user not found")
 }
 
-func (storage *Storage) DelUser(project, name string) error {
-	projectConfig, err := storage.GetProjectConfig(project)
+func (storage *Storage) DelUser(name string) error {
+	projectConfig, err := storage.GetProjectConfig()
 	if err != nil {
 		return err
 	}
 	for idx, user := range projectConfig.Users {
 		if user.Name == name {
 			projectConfig.Users = append(projectConfig.Users[:idx], projectConfig.Users[idx+1:]...)
-			return storage.backend.Save(project, projectConfig)
+			return storage.backend.Save(projectConfig)
 		}
 	}
 	return errors.New("user not found")
 }
 
-func (storage *Storage) UpdateUser(project string, user *User) error {
-	projectConfig, err := storage.GetProjectConfig(project)
+func (storage *Storage) UpdateUser(user *User) error {
+	projectConfig, err := storage.GetProjectConfig()
 	if err != nil {
 		return err
 	}
-	err = storage.DelUser(project, user.Name)
+	err = storage.DelUser(user.Name)
 	if err != nil {
 		return err
 	}
 	projectConfig.Users = append(projectConfig.Users, user)
-	return storage.backend.Save(project, projectConfig)
+	return storage.backend.Save(projectConfig)
 }
 
-func (user *User) CheckRights(storage *Storage, project, service string, labels map[string]string) (bool, error) {
+func (user *User) CheckRights(storage *Storage, service string, labels map[string]string) (bool, error) {
 	toAck := len(labels)
 	for _, groupName := range user.Groups {
-		group, err := storage.GetGroup(project, groupName)
+		group, err := storage.GetGroup(groupName)
 		if err != nil {
 			log.Printf("Error loading group %v: %v", groupName, err)
 			continue
@@ -101,8 +101,8 @@ func (user *User) CheckPassword(password string) (bool, error) {
 	return true, nil
 }
 
-func (storage *Storage) ListUsers(project string) ([]*User, error) {
-	projectConfig, err := storage.GetProjectConfig(project)
+func (storage *Storage) ListUsers() ([]*User, error) {
+	projectConfig, err := storage.GetProjectConfig()
 	if err != nil {
 		return nil, err
 	}

@@ -14,7 +14,6 @@ type Config struct {
 
 type Host struct {
 	Backend string
-	Project string
 	TLS     *TLSConfig
 	CORS    *CORSConfig
 	Routes  []*Route

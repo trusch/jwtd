@@ -24,7 +24,7 @@ func NewProxy(cfg *Config) (*Proxy, error) {
 	}
 	proxy := &Proxy{cfg: cfg, key: key}
 	for host, hostCfg := range cfg.Hosts {
-		singleProxy, err := NewSingleProxy(hostCfg.Project, host, hostCfg.Backend, hostCfg.Routes, proxy.key)
+		singleProxy, err := NewSingleProxy(host, hostCfg.Backend, hostCfg.Routes, proxy.key)
 		if err != nil {
 			return nil, err
 		}

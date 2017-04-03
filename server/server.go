@@ -17,7 +17,6 @@ var (
 )
 
 type TokenRequest struct {
-	Project  string            `json:"project"`
 	Username string            `json:"username"`
 	Password string            `json:"password"`
 	Service  string            `json:"service"`
@@ -25,24 +24,24 @@ type TokenRequest struct {
 	Labels   map[string]string `json:"labels"`
 }
 
-func Init(path, keyfile string) error {
-	if err := initDB(path); err != nil {
+func Init(cfgFile, keyfile string) error {
+	if err := initDB(cfgFile); err != nil {
 		return err
 	}
-	initDBReloader(path)
+	initDBReloader(cfgFile)
 	if err := initKey(keyfile); err != nil {
 		return err
 	}
 	router := mux.NewRouter()
 	router.Path("/token").Handler(NewTokenHandler())
-	router.PathPrefix("/project/{project}/user").Handler(NewUserHandler())
-	router.PathPrefix("/project/{project}/group").Handler(NewGroupHandler())
+	router.PathPrefix("/user").Handler(NewUserHandler())
+	router.PathPrefix("/group").Handler(NewGroupHandler())
 	http.Handle("/", router)
 	return nil
 }
 
 func initDB(path string) error {
-	fileStorage := &st0rage.FileBasedStorageBackend{ConfigDir: path}
+	fileStorage := &st0rage.FileBasedStorageBackend{ConfigFile: path}
 	storage = st0rage.New(fileStorage)
 	return nil
 }

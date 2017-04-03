@@ -15,21 +15,19 @@ import (
 
 type SingleProxy struct {
 	service string
-	project string
 	router  *mux.Router
 	proxy   *httputil.ReverseProxy
 	jwtdCrt interface{}
 }
 
-func NewSingleProxy(project, serviceName, backend string, routes []*Route, jwtdCrt interface{}) (*SingleProxy, error) {
-	backendUrl, err := url.Parse(backend)
+func NewSingleProxy(serviceName, backend string, routes []*Route, jwtdCrt interface{}) (*SingleProxy, error) {
+	backendURL, err := url.Parse(backend)
 	if err != nil {
 		return nil, err
 	}
 	proxy := &SingleProxy{
 		service: serviceName,
-		project: project,
-		proxy:   httputil.NewSingleHostReverseProxy(backendUrl),
+		proxy:   httputil.NewSingleHostReverseProxy(backendURL),
 		jwtdCrt: jwtdCrt,
 	}
 	proxy.constructRouter(routes)
@@ -61,12 +59,14 @@ func (proxy *SingleProxy) buildHandler(required map[string]string) func(w http.R
 			return
 		}
 		claims, err := jwt.GetClaimsFromRequest(r, proxy.jwtdCrt)
+
 		if err != nil {
 			log.Printf("can not get claims from request (%v), return 401", err)
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(err.Error() + "\n"))
 			return
 		}
+
 		if service, ok := claims["service"].(string); ok {
 			if service != proxy.service {
 				log.Printf("service in claim doesn't match, return 401")
@@ -80,31 +80,21 @@ func (proxy *SingleProxy) buildHandler(required map[string]string) func(w http.R
 			w.Write([]byte("no valid service field in token\n"))
 			return
 		}
-		if project, ok := claims["project"].(string); ok {
-			if project != proxy.project {
-				log.Printf("project in claim doesn't match, return 401")
-				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("project mismatch\n"))
-				return
-			}
-		} else {
-			log.Printf("project in claim not valid, return 401")
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("no valid project field in token\n"))
-			return
-		}
+
 		if err = proxy.validateNbf(claims); err != nil {
 			log.Printf("NBF check failed: %v, return 401", err)
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(err.Error() + "\n"))
 			return
 		}
+
 		if err = proxy.validateExp(claims); err != nil {
 			log.Printf("EXP check failed: %v, return 401", err)
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(err.Error() + "\n"))
 			return
 		}
+
 		if err = proxy.validateLabels(claims, proxy.resolveVariables(required, mux.Vars(r))); err != nil {
 			log.Printf("claims do not have the required labels: %v, return 401", err)
 			w.WriteHeader(http.StatusUnauthorized)

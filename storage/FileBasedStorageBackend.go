@@ -2,17 +2,16 @@ package storage
 
 import (
 	"io/ioutil"
-	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 )
 
 type FileBasedStorageBackend struct {
-	ConfigDir string
+	ConfigFile string
 }
 
-func (backend *FileBasedStorageBackend) Load(project string) (*ProjectConfig, error) {
-	bs, err := ioutil.ReadFile(filepath.Join(backend.ConfigDir, project+".yaml"))
+func (backend *FileBasedStorageBackend) Load() (*ProjectConfig, error) {
+	bs, err := ioutil.ReadFile(backend.ConfigFile)
 	if err != nil {
 		return nil, err
 	}
@@ -24,10 +23,10 @@ func (backend *FileBasedStorageBackend) Load(project string) (*ProjectConfig, er
 	return cfg, nil
 }
 
-func (backend *FileBasedStorageBackend) Save(project string, cfg *ProjectConfig) error {
+func (backend *FileBasedStorageBackend) Save(cfg *ProjectConfig) error {
 	bs, err := yaml.Marshal(cfg)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(filepath.Join(backend.ConfigDir, project+".yaml"), bs, 0644)
+	return ioutil.WriteFile(backend.ConfigFile, bs, 0644)
 }

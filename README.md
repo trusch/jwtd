@@ -24,7 +24,6 @@ Access rights are tuples of a service id and a list of labels. The service is ty
 
   - User Management
   - Group Management
-  - Multi Project Support
   - Commandline Interface
   - REST API Interface
   - Wildcard Rights
@@ -49,11 +48,11 @@ A more complex setup is shown in the `test` directory. It contains the integrati
 
 - list groups
 
-  - `GET /project/{project}/group`
+  - `GET /group`
 
 - create group
 
-  - `POST /project/{project}/group`
+  - `POST /group`
   - body should look like:
 
     ```json
@@ -69,15 +68,15 @@ A more complex setup is shown in the `test` directory. It contains the integrati
 
 - get group
 
-  - `GET /project/{project}/group/{groupname}`
+  - `GET /group/{groupname}`
 
 - delete group
 
-  - `DELETE /project/{project}/group/{groupname}`
+  - `DELETE /group/{groupname}`
 
 - update group
 
-  - `PATCH /project/{project}/group/{groupname}`
+  - `PATCH /group/{groupname}`
   - the rights object of the group is completly replaced, so be carefull
   - body should look like:
 
@@ -96,11 +95,11 @@ A more complex setup is shown in the `test` directory. It contains the integrati
 
 - list users
 
-  - `GET /project/{project}/user`
+  - `GET /user`
 
 - create user
 
-  - `POST /project/{project}/user`
+  - `POST /user`
   - body should look like:
 
     ```json
@@ -115,15 +114,15 @@ A more complex setup is shown in the `test` directory. It contains the integrati
 
 - get user
 
-  - `GET /project/{project}/user/{username}`
+  - `GET /user/{username}`
 
 - delete user
 
-  - `DELETE /project/{project}/user/{username}`
+  - `DELETE /user/{username}`
 
 - update user
 
-  - `PATCH /project/{project}/user/{username}`
+  - `PATCH /user/{username}`
   - the rights object of the user is completly replaced, so be carefull
   - for updating the password body should look like:
 
@@ -149,7 +148,7 @@ A more complex setup is shown in the `test` directory. It contains the integrati
 
     - `GET /token`
     - body should look like
-    
+
       ```json
       {
         "project": "my-project",
@@ -195,10 +194,10 @@ Your config dir should now look like this:
 
 3. Create initial jwtd config
 ```bash
-> mkdir -p /etc/jwtd/projects
-> jwtd-ctl -c /etc/jwtd/projects -p project1 init
+> mkdir -p /etc/jwtd
+> jwtd-ctl init
 ```
-This will generate a config file in /etc/jwtd/projects/project1.yaml like this:
+This will generate a config file in /etc/jwtd/config.yml like this:
   ```yaml
   users:
   - name: admin
@@ -219,7 +218,6 @@ cert: /etc/jwtd/pki/jwtd.crt
 hosts:
   jwtd:
     backend: http://localhost:8080
-    project: project1
     tls:
       cert: /etc/jwtd/pki/jwtd.crt
       key: /etc/jwtd/pki/jwtd.key
@@ -233,14 +231,13 @@ hosts:
 
 5. Start servers
 ```bash
-> jwtd -config /etc/jwtd/projects -key /etc/jwtd/pki/jwtd.key -listen :8080 &
+> jwtd -key /etc/jwtd/pki/jwtd.key -listen :8080 &
 > jwtd-proxy -config /etc/jwtd/proxy.yaml &
 ```
 
 6. Test your setup
 ```bash
 >request='{
-  "project":"project1",
   "username":"admin",
   "password":"admin",
   "service":"jwtd",
@@ -286,7 +283,6 @@ Check the following jwtd-proxy config:
   hosts:
     service1:
       backend: http://localhost:8080
-      project: project1
       tls:
         cert: /etc/jwtd/pki/service1.crt
         key: /etc/jwtd/pki/service1.key

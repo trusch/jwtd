@@ -15,8 +15,7 @@ var listGroupsCmd = &cobra.Command{
 	Long:  `This lists all known groups and dumps them as yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
-		project, _ := cmd.Flags().GetString("project")
-		groups, err := database.ListGroups(project)
+		groups, err := database.ListGroups()
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -13,7 +13,6 @@ var delGroupCmd = &cobra.Command{
 	Long:  `This deletes a group from the db.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
-		project, _ := cmd.Flags().GetString("project")
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
 			if len(args) > 0 {
@@ -22,7 +21,7 @@ var delGroupCmd = &cobra.Command{
 				log.Fatal("specify --name")
 			}
 		}
-		err := database.DelGroup(project, name)
+		err := database.DelGroup(name)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -13,7 +13,6 @@ var delUserCmd = &cobra.Command{
 	Long:  `This deletes a user from the database.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
-		project, _ := cmd.Flags().GetString("project")
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
 			if len(args) > 0 {
@@ -22,7 +21,7 @@ var delUserCmd = &cobra.Command{
 				log.Fatal("specify --name")
 			}
 		}
-		err := database.DelUser(project, name)
+		err := database.DelUser(name)
 		if err != nil {
 			log.Fatal(err)
 		}

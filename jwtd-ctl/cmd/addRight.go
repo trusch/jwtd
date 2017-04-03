@@ -13,7 +13,6 @@ var addRightCmd = &cobra.Command{
 	Long:  `This adds an access right to a group.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
-		project, _ := cmd.Flags().GetString("project")
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
 			if len(args) > 0 {
@@ -28,7 +27,7 @@ var addRightCmd = &cobra.Command{
 		if service == "" || key == "" || value == "" {
 			log.Fatal("specifiy --service, --key and --value")
 		}
-		group, err := database.GetGroup(project, name)
+		group, err := database.GetGroup(name)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -37,7 +36,7 @@ var addRightCmd = &cobra.Command{
 		} else {
 			group.Rights[service] = map[string]string{key: value}
 		}
-		err = database.UpdateGroup(project, group)
+		err = database.UpdateGroup(group)
 		if err != nil {
 			log.Fatal(err)
 		}

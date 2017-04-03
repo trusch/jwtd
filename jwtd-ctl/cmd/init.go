@@ -31,14 +31,12 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		project, _ := cmd.Flags().GetString("project")
 		database := getDB()
-		database.CreateProject(project)
-		err := database.CreateUser(project, "admin", "admin", []string{"admin"})
+		err := database.CreateUser("admin", "admin", []string{"admin"})
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = database.CreateGroup(project, "admin", map[string]map[string]string{
+		err = database.CreateGroup("admin", map[string]map[string]string{
 			"jwtd": map[string]string{
 				"scope": "admin",
 			},

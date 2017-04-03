@@ -17,7 +17,6 @@ var createTokenCmd = &cobra.Command{
 	Long:  `This creates a token.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
-		project, _ := cmd.Flags().GetString("project")
 		keyFile, _ := cmd.Flags().GetString("key")
 		username, _ := cmd.Flags().GetString("username")
 		password, _ := cmd.Flags().GetString("password")
@@ -36,14 +35,14 @@ var createTokenCmd = &cobra.Command{
 		}
 
 		if !force {
-			user, err := database.GetUser(project, username)
+			user, err := database.GetUser(username)
 			if err != nil {
 				log.Fatalf("failed request: no such user (%v)", username)
 			}
 			if ok, e := user.CheckPassword(password); e != nil || !ok {
 				log.Fatalf("failed request: wrong password (user: %v)", username)
 			}
-			if ok, e := user.CheckRights(database, project, service, labels); e != nil || !ok {
+			if ok, e := user.CheckRights(database, service, labels); e != nil || !ok {
 				log.Fatalf("failed request: no rights (user: %v service: %v, labels: %v)", username, service, labels)
 			}
 		}
@@ -51,7 +50,6 @@ var createTokenCmd = &cobra.Command{
 		claims := jwt.Claims{
 			"user":    username,
 			"service": service,
-			"project": project,
 			"labels":  labels,
 			"nbf":     time.Now(),
 			"exp":     time.Now().Add(10 * time.Minute),

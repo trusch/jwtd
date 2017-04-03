@@ -16,8 +16,7 @@ var listUsersCmd = &cobra.Command{
 	Long:  `This lists all users and dumps it as yaml.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
-		project, _ := cmd.Flags().GetString("project")
-		users, err := database.ListUsers(project)
+		users, err := database.ListUsers()
 		if err != nil {
 			log.Fatal(err)
 		}

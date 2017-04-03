@@ -13,7 +13,6 @@ var addGroupCmd = &cobra.Command{
 	Long:  `This adds a group to your jwtd server.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
-		project, _ := cmd.Flags().GetString("project")
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
 			if len(args) > 0 {
@@ -22,7 +21,7 @@ var addGroupCmd = &cobra.Command{
 				log.Fatal("specify --name")
 			}
 		}
-		err := database.CreateGroup(project, name, map[string]map[string]string{})
+		err := database.CreateGroup(name, map[string]map[string]string{})
 		if err != nil {
 			log.Fatal(err)
 		}

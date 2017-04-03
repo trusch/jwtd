@@ -16,7 +16,6 @@ var getGroupCmd = &cobra.Command{
 	Long:  `This dumps group information about a given group from the database.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
-		project, _ := cmd.Flags().GetString("project")
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
 			if len(args) > 0 {
@@ -25,7 +24,7 @@ var getGroupCmd = &cobra.Command{
 				log.Fatal("specify --name")
 			}
 		}
-		group, err := database.GetGroup(project, name)
+		group, err := database.GetGroup(name)
 		if err != nil {
 			log.Fatal(err)
 		}

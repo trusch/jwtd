@@ -13,7 +13,6 @@ var delRightCmd = &cobra.Command{
 	Long:  `This deletes an accessright from a group. The right is specified by --service and --subject.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		database := getDB()
-		project, _ := cmd.Flags().GetString("project")
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
 			if len(args) > 0 {
@@ -27,7 +26,7 @@ var delRightCmd = &cobra.Command{
 		if service == "" || key == "" {
 			log.Fatal("specifiy --service and --key")
 		}
-		group, err := database.GetGroup(project, name)
+		group, err := database.GetGroup(name)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -36,7 +35,7 @@ var delRightCmd = &cobra.Command{
 		} else {
 			log.Fatal("no such label key")
 		}
-		err = database.UpdateGroup(project, group)
+		err = database.UpdateGroup(group)
 		if err != nil {
 			log.Fatal(err)
 		}

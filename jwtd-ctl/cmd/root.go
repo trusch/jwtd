@@ -30,12 +30,11 @@ func Execute() {
 }
 
 func init() {
-	RootCmd.PersistentFlags().StringP("config", "c", "/etc/jwtd/projects", "config file")
-	RootCmd.PersistentFlags().StringP("project", "p", "default", "project to use")
+	RootCmd.PersistentFlags().StringP("config", "c", "/etc/jwtd/config.yml", "config file")
 }
 
 func getDB() *storage.Storage {
 	config, _ := RootCmd.Flags().GetString("config")
-	fileStorage := &storage.FileBasedStorageBackend{ConfigDir: config}
+	fileStorage := &storage.FileBasedStorageBackend{ConfigFile: config}
 	return storage.New(fileStorage)
 }

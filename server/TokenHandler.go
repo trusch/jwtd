@@ -65,5 +65,9 @@ func (h *TokenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("successfully created token (user: %v service: %v, labels: %v)", request.Username, request.Service, request.Labels)
-	w.Write([]byte(token))
+	resp := map[string]string {
+		"token": token,
+	}
+	encoder := json.NewEncoder(w)
+	encoder.Encode(resp)
 }

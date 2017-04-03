@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -51,6 +52,14 @@ func (proxy *SingleProxy) constructRouter(routes []*Route) {
 	proxy.router = r
 }
 
+func (proxy *SingleProxy) sendMessage(w http.ResponseWriter, msg string) {
+	data := map[string]string{
+		"message": msg,
+	}
+	encoder := json.NewEncoder(w)
+	encoder.Encode(data)
+}
+
 func (proxy *SingleProxy) buildHandler(required map[string]string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if len(required) == 0 {
@@ -63,7 +72,7 @@ func (proxy *SingleProxy) buildHandler(required map[string]string) func(w http.R
 		if err != nil {
 			log.Printf("can not get claims from request (%v), return 401", err)
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(err.Error() + "\n"))
+			proxy.sendMessage(w, err.Error()+"\n")
 			return
 		}
 
@@ -71,34 +80,34 @@ func (proxy *SingleProxy) buildHandler(required map[string]string) func(w http.R
 			if service != proxy.service {
 				log.Printf("service in claim doesn't match, return 401")
 				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("service mismatch\n"))
+				proxy.sendMessage(w, "service mismatch\n")
 				return
 			}
 		} else {
 			log.Printf("service in claim not valid, return 401")
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("no valid service field in token\n"))
+			proxy.sendMessage(w, "no valid service field in token\n")
 			return
 		}
 
 		if err = proxy.validateNbf(claims); err != nil {
 			log.Printf("NBF check failed: %v, return 401", err)
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(err.Error() + "\n"))
+			proxy.sendMessage(w, err.Error()+"\n")
 			return
 		}
 
 		if err = proxy.validateExp(claims); err != nil {
 			log.Printf("EXP check failed: %v, return 401", err)
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(err.Error() + "\n"))
+			proxy.sendMessage(w, err.Error()+"\n")
 			return
 		}
 
 		if err = proxy.validateLabels(claims, proxy.resolveVariables(required, mux.Vars(r))); err != nil {
 			log.Printf("claims do not have the required labels: %v, return 401", err)
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(err.Error() + "\n"))
+			proxy.sendMessage(w, err.Error()+"\n")
 			return
 		}
 		log.Printf("all checks passed, forwarding...")

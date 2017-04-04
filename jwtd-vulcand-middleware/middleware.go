@@ -3,7 +3,6 @@ package middleware
 // Note that I import the versions bundled with vulcand. That will make our lives easier, as we'll use exactly the same versions used
 // by vulcand. We are escaping dependency management troubles thanks to Godep.
 import (
-	"crypto/rsa"
 	"errors"
 	"fmt"
 	"log"
@@ -86,8 +85,8 @@ func (a *JwtHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // New is optional but handy, used to check input parameters when creating new middlewares
-func New(publicKey *rsa.PublicKey, service string, required LabelSet) (*JwtMiddleware, error) {
-	return &JwtMiddleware{PublicKey: publicKey, Service: service, Required: LabelSet}, nil
+func New(publicKey interface{}, service string, required LabelSet) (*JwtMiddleware, error) {
+	return &JwtMiddleware{PublicKey: publicKey, Service: service, Required: required}, nil
 }
 
 // NewHandler is important, it's called by vulcand to create a new handler from the middleware config and put it into the
@@ -130,7 +129,7 @@ func FromCli(c *cli.Context) (plugin.Middleware, error) {
 	if service == "" {
 		return nil, errors.New("supply a service identifier")
 	}
-	reqStr = c.String("require")
+	reqStr := c.String("require")
 	required = NewLabelSetFromString(reqStr)
 	if len(required) == 0 {
 		return nil, errors.New("supply required labels")

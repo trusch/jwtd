@@ -5,12 +5,12 @@ package middleware
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
 	"github.com/codegangsta/cli"
 	"github.com/trusch/jwtd/jwt"
+	"github.com/trusch/jwtd/validator"
 	"github.com/vulcand/vulcand/plugin"
 )
 
@@ -61,6 +61,7 @@ type JwtMiddleware struct {
 	PublicKey interface{}
 	Service   string
 	Required  LabelSet
+	validator *validator.Validator
 }
 
 // JwtHandler is the HTTP handler for the JWT middleware
@@ -78,7 +79,11 @@ func (a *JwtHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Print("got request in middleware")
+	if err := a.cfg.validator.Validate(r, a.cfg.Service, a.cfg.Required); err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(fmt.Sprintf(`{ "error": "%v" }`, err.Error())))
+		return
+	}
 
 	// Pass the request to the next middleware in chain
 	a.next.ServeHTTP(w, r)
@@ -86,7 +91,16 @@ func (a *JwtHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // New is optional but handy, used to check input parameters when creating new middlewares
 func New(publicKey interface{}, service string, required LabelSet) (*JwtMiddleware, error) {
-	return &JwtMiddleware{PublicKey: publicKey, Service: service, Required: required}, nil
+	validator, err := validator.New(publicKey)
+	if err != nil {
+		return nil, err
+	}
+	return &JwtMiddleware{
+		PublicKey: publicKey,
+		Service:   service,
+		Required:  required,
+		validator: validator,
+	}, nil
 }
 
 // NewHandler is important, it's called by vulcand to create a new handler from the middleware config and put it into the

@@ -24,7 +24,7 @@ func New(cert interface{}) (*Validator, error) {
 // Validate validates a requests
 func (validator *Validator) Validate(r *http.Request, service string, required map[string]string) error {
 	if len(required) == 0 {
-		log.Print("no labels required for this reques, now forwarding...")
+		log.Print("no labels required for this request, forwarding...")
 		return nil
 	}
 	claims, err := jwt.GetClaimsFromRequest(r, validator.cert)

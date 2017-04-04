@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/codegangsta/cli"
 	"github.com/trusch/jwtd/jwt"
 	"github.com/vulcand/vulcand/plugin"
-	"github.com/vulcand/vulcand/vendor/github.com/codegangsta/cli"
 )
 
 const (

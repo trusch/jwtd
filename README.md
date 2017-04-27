@@ -237,12 +237,12 @@ hosts:
 
 6. Test your setup
 ```bash
->request='{
-  "username":"admin",
-  "password":"admin",
-  "service":"jwtd",
-  "labels":{"scope":"admin"}
-}'
+> request='{
+   "username":"admin",
+   "password":"admin",
+   "service":"jwtd",
+   "labels":{"scope":"admin"}
+  }'
 > token=$(curl -k -H "Host: jwtd" --data "$request" https://localhost/token 2>/dev/null)
 > curl -k -H "Host: jwtd" -H "Authorization: bearer $token" https://localhost/project/project1/group
 ```
